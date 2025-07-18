@@ -1,0 +1,34 @@
+[gd_scene load_steps=7 format=3 uid="uid://dtvmboudh6pxp"]
+
+[ext_resource type="Script" uid="uid://cmrm02r2gx6vy" path="res://Script/enemy.gd" id="1_287tu"]
+[ext_resource type="Texture2D" uid="uid://ca0wp4ln1cs1k" path="res://Assets/BigBunny.png" id="1_hghv2"]
+[ext_resource type="Script" uid="uid://b3pqwbslmkwbk" path="res://Script/HurtBox.gd" id="2_1f0kj"]
+[ext_resource type="PackedScene" uid="uid://bearj4oojp58g" path="res://Scenes/health.tscn" id="2_0830c"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_afpow"]
+size = Vector2(24, 18)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_287tu"]
+size = Vector2(28, 21)
+
+[node name="Enemy" type="CharacterBody2D"]
+script = ExtResource("1_287tu")
+
+[node name="Health" parent="." instance=ExtResource("2_0830c")]
+max_health = 500
+
+[node name="Sprite" type="Sprite2D" parent="."]
+texture_filter = 1
+texture = ExtResource("1_hghv2")
+
+[node name="HurtBox" type="Area2D" parent="Sprite"]
+script = ExtResource("2_1f0kj")
+metadata/_custom_type_script = "uid://b3pqwbslmkwbk"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Sprite/HurtBox"]
+position = Vector2(0, 7)
+shape = SubResource("RectangleShape2D_afpow")
+
+[node name="collision" type="CollisionShape2D" parent="."]
+position = Vector2(0, 7.5)
+shape = SubResource("RectangleShape2D_287tu")

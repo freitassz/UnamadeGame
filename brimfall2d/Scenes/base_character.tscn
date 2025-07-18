@@ -1,0 +1,31 @@
+[gd_scene load_steps=6 format=3 uid="uid://bug2v2r7cvrjy"]
+
+[ext_resource type="Texture2D" uid="uid://cm7iqqwuphxft" path="res://Assets/Bunny_Main_Character.png" id="1_e1028"]
+[ext_resource type="Script" uid="uid://bicvtqr30a8d6" path="res://Script/base_character.gd" id="1_foqlb"]
+[ext_resource type="PackedScene" uid="uid://d3gefvr6q5463" path="res://Scenes/weapon.tscn" id="3_sv1ig"]
+[ext_resource type="PackedScene" uid="uid://bearj4oojp58g" path="res://Scenes/health.tscn" id="4_5qvmk"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_foqlb"]
+size = Vector2(10, 6)
+
+[node name="BaseCharacter" type="CharacterBody2D"]
+script = ExtResource("1_foqlb")
+
+[node name="Body" type="Node2D" parent="."]
+
+[node name="BodyTexture" type="Sprite2D" parent="Body"]
+texture_filter = 1
+texture = ExtResource("1_e1028")
+hframes = 4
+vframes = 2
+
+[node name="Weapon" parent="Body" instance=ExtResource("3_sv1ig")]
+
+[node name="Camera2D" type="Camera2D" parent="."]
+zoom = Vector2(4, 4)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, 7)
+shape = SubResource("RectangleShape2D_foqlb")
+
+[node name="Health" parent="." instance=ExtResource("4_5qvmk")]

@@ -1,0 +1,16 @@
+[gd_scene load_steps=4 format=3 uid="uid://bs76l5bw0gylw"]
+
+[ext_resource type="PackedScene" uid="uid://bug2v2r7cvrjy" path="res://Scenes/base_character.tscn" id="1_jcjmw"]
+[ext_resource type="PackedScene" uid="uid://833og6jrolen" path="res://Scenes/terrain.tscn" id="2_jtjkd"]
+[ext_resource type="PackedScene" uid="uid://dtvmboudh6pxp" path="res://Scenes/enemy.tscn" id="3_ht4rx"]
+
+[node name="Game_Level" type="Node2D"]
+
+[node name="BaseCharacter" parent="." instance=ExtResource("1_jcjmw")]
+z_index = 1
+
+[node name="Terrain" parent="." instance=ExtResource("2_jtjkd")]
+
+[node name="Enemy" parent="." instance=ExtResource("3_ht4rx")]
+position = Vector2(-80, -7)
+max_health = 12
