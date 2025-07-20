@@ -1,7 +1,9 @@
 # character_controller_2d.gd
 extends CharacterBody2D
 
-@onready var hitbox = $Body/Weapon/Sprite2D/HitBox
+@onready var combo1 = $Body/Weapon/Combos/Combo1/Sprite2D/HitBox
+@onready var combo2 = $Body/Weapon/Combos/Combo2/Sprite2D/HitBox
+@onready var combo3 = $Body/Weapon/Combos/Combo3/Sprite2D/HitBox
 
 @export var walk_speed: float = 100.0
 @export var roll_speed: float = 250.0 # Speed during the roll
@@ -47,7 +49,9 @@ func _ready():
 	if character_sprite:
 		character_sprite.visible = true
 
-	hitbox.connect("recoil", Callable(self, "_apply_recoil"))
+	combo1.connect("recoil", Callable(self, "_apply_recoil"))
+	combo2.connect("recoil", Callable(self, "_apply_recoil"))
+	combo3.connect("recoil", Callable(self, "_apply_recoil"))
 
 func _process(delta: float) -> void:
 	if is_invincible:

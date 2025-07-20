@@ -10,6 +10,7 @@ size = Vector2(10, 6)
 
 [node name="BaseCharacter" type="CharacterBody2D"]
 script = ExtResource("1_foqlb")
+recoil_friction = 150.0
 
 [node name="Body" type="Node2D" parent="."]
 
@@ -20,6 +21,7 @@ hframes = 4
 vframes = 2
 
 [node name="Weapon" parent="Body" instance=ExtResource("3_sv1ig")]
+player_node_path = NodePath("../..")
 
 [node name="Camera2D" type="Camera2D" parent="."]
 zoom = Vector2(4, 4)
