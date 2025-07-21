@@ -10,7 +10,6 @@ size = Vector2(10, 6)
 
 [node name="BaseCharacter" type="CharacterBody2D"]
 script = ExtResource("1_foqlb")
-recoil_friction = 150.0
 
 [node name="Body" type="Node2D" parent="."]
 

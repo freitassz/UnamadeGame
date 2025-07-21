@@ -6,10 +6,10 @@
 [ext_resource type="PackedScene" uid="uid://bearj4oojp58g" path="res://Scenes/health.tscn" id="2_0830c"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_afpow"]
-size = Vector2(24, 18)
+size = Vector2(28, 20)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_287tu"]
-size = Vector2(28, 21)
+size = Vector2(28, 20)
 
 [node name="Enemy" type="CharacterBody2D"]
 script = ExtResource("1_287tu")
@@ -26,9 +26,9 @@ script = ExtResource("2_1f0kj")
 metadata/_custom_type_script = "uid://b3pqwbslmkwbk"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Sprite/HurtBox"]
-position = Vector2(0, 7)
+position = Vector2(0, 8)
 shape = SubResource("RectangleShape2D_afpow")
 
 [node name="collision" type="CollisionShape2D" parent="."]
-position = Vector2(0, 7.5)
+position = Vector2(0, 8)
 shape = SubResource("RectangleShape2D_287tu")

@@ -14,15 +14,3 @@ z_index = 1
 [node name="Enemy" parent="." instance=ExtResource("3_ht4rx")]
 position = Vector2(-80, -7)
 knockback_friction = 150.0
-
-[node name="Enemy2" parent="." instance=ExtResource("3_ht4rx")]
-position = Vector2(2, 58)
-knockback_friction = 150.0
-
-[node name="Enemy3" parent="." instance=ExtResource("3_ht4rx")]
-position = Vector2(78, -2)
-knockback_friction = 150.0
-
-[node name="Enemy4" parent="." instance=ExtResource("3_ht4rx")]
-position = Vector2(0, -79)
-knockback_friction = 150.0

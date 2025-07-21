@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://u4wouspq2m7k"
-path="res://.godot/imported/AtackBigert.png-04f05b21de02f451a24264e7ea8cad8f.ctex"
+uid="uid://cfjcivb7as2v3"
+path="res://.godot/imported/image.png-0675dfeff6aa31652eb3551faf7498f0.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/AtackBigert.png"
-dest_files=["res://.godot/imported/AtackBigert.png-04f05b21de02f451a24264e7ea8cad8f.ctex"]
+source_file="res://Assets/image.png"
+dest_files=["res://.godot/imported/image.png-0675dfeff6aa31652eb3551faf7498f0.ctex"]
 
 [params]
 
