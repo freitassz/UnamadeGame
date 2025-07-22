@@ -1,9 +1,9 @@
 [gd_scene load_steps=12 format=3 uid="uid://d3gefvr6q5463"]
 
-[ext_resource type="Script" uid="uid://bcq6hc6oh5byp" path="res://Script/weapon.gd" id="1_er6cq"]
-[ext_resource type="Texture2D" uid="uid://c7ipe2nsx12l" path="res://Assets/AttackAnimation.png" id="2_e1ly8"]
-[ext_resource type="Script" uid="uid://c26g0h8geemc0" path="res://Script/HitBox.gd" id="3_e1ly8"]
-[ext_resource type="Texture2D" uid="uid://c4toc27iav6sn" path="res://Assets/Foward_atack-Sheet-Sheet.png" id="4_l036s"]
+[ext_resource type="Script" uid="uid://bcq6hc6oh5byp" path="res://Script/weapon.gd" id="1_a54vs"]
+[ext_resource type="Texture2D" uid="uid://c7ipe2nsx12l" path="res://Assets/AttackAnimation.png" id="2_akyv1"]
+[ext_resource type="Script" uid="uid://c26g0h8geemc0" path="res://Script/HitBox.gd" id="3_10xpx"]
+[ext_resource type="Texture2D" uid="uid://c4toc27iav6sn" path="res://Assets/Foward_atack-Sheet-Sheet.png" id="4_y2h4v"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_l036s"]
 radius = 24.0
@@ -134,7 +134,7 @@ _data = {
 }
 
 [node name="Weapon" type="Node2D"]
-script = ExtResource("1_er6cq")
+script = ExtResource("1_a54vs")
 
 [node name="Combos" type="Node2D" parent="."]
 
@@ -143,11 +143,11 @@ script = ExtResource("1_er6cq")
 [node name="Sprite2D" type="Sprite2D" parent="Combos/Combo1"]
 texture_filter = 1
 position = Vector2(-20, 0)
-texture = ExtResource("2_e1ly8")
+texture = ExtResource("2_akyv1")
 hframes = 3
 
 [node name="HitBox" type="Area2D" parent="Combos/Combo1/Sprite2D"]
-script = ExtResource("3_e1ly8")
+script = ExtResource("3_10xpx")
 knockback = 40
 metadata/_custom_type_script = "uid://c26g0h8geemc0"
 
@@ -163,11 +163,11 @@ one_way_collision_margin = 40.0
 [node name="Sprite2D" type="Sprite2D" parent="Combos/Combo2"]
 texture_filter = 1
 position = Vector2(-31, 0)
-texture = ExtResource("4_l036s")
+texture = ExtResource("4_y2h4v")
 hframes = 3
 
 [node name="HitBox" type="Area2D" parent="Combos/Combo2/Sprite2D"]
-script = ExtResource("3_e1ly8")
+script = ExtResource("3_10xpx")
 knockback = 100
 player_knockback = 70
 weapon_push = 120.0

@@ -4,8 +4,7 @@ signal attack(weapon_push: float, weapon_dir: Vector2)
 
 @onready var combos_node: Node2D = $Combos
 @onready var animation_player: AnimationPlayer = $AnimationPlayer
-@onready var player: CharacterBody2D = get_node(player_node_path) as CharacterBody2D
-@export var player_node_path: NodePath # Adicione esta variável export para definir o caminho do player
+@onready var player: CharacterBody2D = get_parent().get_parent() as CharacterBody2D
 
 @onready var weapon_dir: Vector2 # Esta variável armazenará a direção atual da arma
 

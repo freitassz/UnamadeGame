@@ -5,6 +5,7 @@ extends CharacterBody2D
 @onready var weapon = $Body/Weapon
 @onready var animation_player = $AnimationPlayer
 @onready var character_sprite = $AnimatedSprite2D
+@onready var player_sprite = $Body/BodyTexture
 
 @export_category("Rolling")
 @export var roll_speed: float = 250.0 
@@ -91,6 +92,13 @@ func _physics_process(delta: float) -> void:
 			if input_direction.length() > 0:
 				new_state = MovementState.WALKING
 				current_speed = walk_speed
+				
+				# --- Sprite Flipping Logic ---
+				if input_direction.x > 0: # Moving right
+					player_sprite.flip_h = true
+				elif input_direction.x < 0: # Moving left
+					player_sprite.flip_h = false
+				# --- End Sprite Flipping Logic ---
 			else:
 				new_state = MovementState.IDLE
 				current_speed = 0.0
@@ -112,14 +120,14 @@ func _update_animation() -> void:
 
 	match current_movement_state:
 		MovementState.IDLE:
-			if animation_player.current_animation != "idle":
-				animation_player.play("idle")
+			if animation_player.current_animation != "IDLE":
+				animation_player.play("IDLE")
 		MovementState.WALKING:
-			if animation_player.current_animation != "walk":
-				animation_player.play("walk")
+			if animation_player.current_animation != "WALK":
+				animation_player.play("WALK")
 		MovementState.ROLLING:
-			if animation_player.current_animation != "roll":
-				animation_player.play("roll")
+			if animation_player.current_animation != "ROLL":
+				animation_player.play("ROLL")
 		MovementState.RECOILING:
 			if animation_player.current_animation != "idle":
 				animation_player.play("idle") #ALTERAR DEPOIS POR RECOIL ANIMATION
@@ -198,6 +206,13 @@ func _is_attacking(weapon_push: float, weapon_dir: Vector2):
 
 	attack_lunge_speed_current = weapon_push
 	attack_lunge_direction = weapon_dir.normalized()
+	
+	# --- Sprite Flipping Logic for Attack ---
+	if attack_lunge_direction.x > 0: # Attacking right
+		player_sprite.flip_h = true
+	elif attack_lunge_direction.x < 0: # Attacking left
+		player_sprite.flip_h = false
+	# --- End Sprite Flipping Logic for Attack ---
 
 	velocity = attack_lunge_direction * attack_lunge_speed_current
 
