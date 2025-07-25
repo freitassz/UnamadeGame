@@ -27,7 +27,7 @@ func _on_died():
 
 func apply_knockback(force: float, hit_position: Vector2) -> void:
 	# Calcula a direção do knockback (do alvo para longe da posição do ataque)
-	var knockback_direction = (global_position -  hit_position).normalized()
+	var knockback_direction = (global_position - hit_position).normalized()
 	# Calcula a força final do knockback, levando em conta a resistência
 	var final_knockback_force = force / knockback_resistance
 	# Define o vetor de knockback
