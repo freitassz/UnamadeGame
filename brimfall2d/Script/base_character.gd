@@ -1,24 +1,23 @@
 extends CharacterBody2D
-###ALTERAR DEPOIS, POIS O COMBO1 E 2 N PRECISAM ESTAR AQ E O HITBOX TA ERRADO O SCRIPT
-@onready var combo1 = $Body/Weapon/Combos/Combo1/Sprite2D/HitBox # Consider moving this signal connection to the weapon script
-@onready var combo2 = $Body/Weapon/Combos/Combo2/Sprite2D/HitBox # Consider moving this signal connection to the weapon script
+
+@onready var combo1 = $Body/Weapon/Combos/Combo1/Sprite2D/HitBox
+@onready var combo2 = $Body/Weapon/Combos/Combo2/Sprite2D/HitBox
 @onready var weapon = $Body/Weapon
 @onready var animation_player = $AnimationPlayer
 @onready var character_sprite = $AnimatedSprite2D
 @onready var player_sprite = $Body/BodyTexture
-@onready var health = $Health
 
 @export_category("Rolling")
-@export var roll_speed: float = 250.0
-@export var roll_duration: float = 0.25
+@export var roll_speed: float = 250.0 
+@export var roll_duration: float = 0.25 
 @export var roll_cooldown: float = 0.5
 @export_category("Invincibility")
-@export var blink_interval: float = 0.1
-@export var invincibility_time: float = 0.25
+@export var blink_interval: float = 0.1 
+@export var invincibility_time: float = 0.25 
 @export_category("Recoil")
-@export var player_recoil_strength: float = 1.0
+@export var player_recoil_strength: float = 1.0 
 @export var recoil_friction: float = 100.0
-@export var min_recoil_speed_threshold: float = 1.0
+@export var min_recoil_speed_threshold: float = 10.0
 @export_category("Others")
 @export var walk_speed: float = 100.0
 @export var attack_pause_duration: float = 0.1
@@ -29,12 +28,9 @@ enum MovementState {
 	WALKING,
 	ROLLING,
 	RECOILING,
-	ATTACKING
+	ATTACKING # Added ATTACKING state
 }
 var current_movement_state: MovementState = MovementState.IDLE
-var animation_dir: int = -1 # 0 para frente/baixo, 1 para costas/cima
-var last_walk_animation_played: String = "WALK" # Armazena a última animação de caminhada tocada
-
 # === Roll Variables ===#
 var is_rolling: bool = false
 var roll_direction: Vector2 = Vector2.ZERO
@@ -49,21 +45,15 @@ var is_recoiling: bool = false
 var recoil_vector := Vector2.ZERO
 # === Attack Variables ===#
 var is_attacking: bool = false
-var attack_lunge_speed_current: float = 0.0
-var attack_lunge_direction: Vector2 = Vector2.ZERO
+var attack_lunge_speed_current: float = 0.0 
+var attack_lunge_direction: Vector2 = Vector2.ZERO 
 
 func _ready():
 	if character_sprite:
 		character_sprite.visible = true
 
-	health.connect("died", Callable(self, "_on_died"))
-	# Instead of connecting here, consider moving the "recoil" signal emission
-	# from Combo1/2 to the parent 'weapon' script, and have the weapon
-	# emit a more generic "player_hit_by_weapon" or "weapon_applied_knockback"
-	# signal with relevant data, which then calls the unified 'apply_knockback'
-	# on the player. For now, we'll connect it to the new unified function.
-	combo1.connect("recoil", Callable(self, "_on_hitbox_recoil_signal"))
-	combo2.connect("recoil", Callable(self, "_on_hitbox_recoil_signal"))
+	combo1.connect("recoil", Callable(self, "_apply_recoil"))
+	combo2.connect("recoil", Callable(self, "_apply_recoil"))
 	weapon.connect("attack", Callable(self, "_is_attacking"))
 
 func _process(delta: float) -> void:
@@ -102,7 +92,13 @@ func _physics_process(delta: float) -> void:
 			if input_direction.length() > 0:
 				new_state = MovementState.WALKING
 				current_speed = walk_speed
-				_update_walk_animation(input_direction) # Passa input_direction
+				
+				# --- Sprite Flipping Logic ---
+				if input_direction.x > 0: # Moving right
+					player_sprite.flip_h = true
+				elif input_direction.x < 0: # Moving left
+					player_sprite.flip_h = false
+				# --- End Sprite Flipping Logic ---
 			else:
 				new_state = MovementState.IDLE
 				current_speed = 0.0
@@ -124,53 +120,20 @@ func _update_animation() -> void:
 
 	match current_movement_state:
 		MovementState.IDLE:
-			# Baseia-se na última animação de caminhada tocada
-			if animation_dir == 1:
-				if animation_player.current_animation != "IDLE_BACK": # Verifique se esta animação existe
-					animation_player.play("IDLE_BACK")
-			else:
-				if animation_dir == 0:
-					animation_player.play("IDLE")
+			if animation_player.current_animation != "IDLE":
+				animation_player.play("IDLE")
 		MovementState.WALKING:
-			pass
+			if animation_player.current_animation != "WALK":
+				animation_player.play("WALK")
 		MovementState.ROLLING:
 			if animation_player.current_animation != "ROLL":
 				animation_player.play("ROLL")
 		MovementState.RECOILING:
 			if animation_player.current_animation != "idle":
-				animation_player.play("idle") # ALTERAR DEPOIS POR RECOIL ANIMATION
+				animation_player.play("idle") #ALTERAR DEPOIS POR RECOIL ANIMATION
 		MovementState.ATTACKING:
-			if animation_dir == 0:
-				if animation_player.current_animation != "ATTACK":
-					animation_player.play("ATTACK")
-			elif animation_dir == 1:
-				if animation_player.current_animation != "ATTACK_BACK":
-					animation_player.play("ATTACK_BACK")
-
-func _update_walk_animation(input_direction: Vector2) -> void: # Recebe input_direction como parâmetro
-	# --- Lógica de Virar o Sprite Horizontalmente ---
-	if input_direction.x > 0: # Movendo para a direita
-		player_sprite.flip_h = true
-	elif input_direction.x < 0: # Movendo para a esquerda
-		player_sprite.flip_h = false
-	# --- Fim Lógica de Virar o Sprite Horizontalmente ---
-
-	# --- Lógica para Atualizar Animação de Caminhada Constantemente e definir animation_dir ---
-	if input_direction.y < 0: # Movendo para cima (ex: cima-esquerda, cima-direita)
-		if animation_player.current_animation != "WALK_BACK":
-			animation_player.play("WALK_BACK")
-		last_walk_animation_played = "WALK_BACK" # Atualiza a última animação de caminhada
-		animation_dir = 1 # Define para cima/costas
-	elif input_direction.y > 0: # Movendo para baixo (ex: baixo-esquerda, baixo-direita)
-		if animation_player.current_animation != "WALK":
-			animation_player.play("WALK")
-		last_walk_animation_played = "WALK" # Atualiza a última animação de caminhada
-		animation_dir = 0 # Define para baixo/frente
-	elif input_direction.x != 0: # Movendo puramente na horizontal (se não houver input vertical)
-		if animation_player.current_animation != "WALK":
-			animation_player.play("WALK")
-		last_walk_animation_played = "WALK" # Atualiza a última animação de caminhada
-		animation_dir = 0 # Assume direção frontal para horizontal puro
+			if animation_player.current_animation != "attack":
+				animation_player.play("attack")
 
 func _start_roll(input_dir: Vector2) -> void:
 	if input_dir.length() == 0:
@@ -206,21 +169,15 @@ func _handle_roll(delta: float) -> void:
 			_set_movement_state(MovementState.IDLE)
 			velocity = Vector2.ZERO
 
-# NEW: Unified function for knockback
-func apply_knockback(force: float, hit_position: Vector2) -> void:
+func _apply_recoil(player_knockback_value: float, enemy_knockback_value: float, hit_position: Vector2):
 	if is_rolling:
 		return
 
 	is_recoiling = true
-	var knockback_direction = (global_position - hit_position).normalized()
-	recoil_vector = knockback_direction * (force * player_recoil_strength)
+	var recoil_direction = (global_position - hit_position).normalized()
+
+	recoil_vector = recoil_direction * player_knockback_value * player_recoil_strength
 	_set_movement_state(MovementState.RECOILING)
-
-# This function will now be called when Combo1/2 emit their "recoil" signal
-func _on_hitbox_recoil_signal(player_knockback_value: float, enemy_knockback_value: float, hit_position: Vector2):
-	# Assuming 'player_knockback_value' is the force to apply to the player
-	apply_knockback(player_knockback_value, hit_position)
-
 
 func _handle_recoil(delta: float) -> void:
 	velocity = recoil_vector
@@ -240,36 +197,22 @@ func _handle_recoil(delta: float) -> void:
 			velocity = Vector2.ZERO
 
 func _is_attacking(weapon_push: float, weapon_dir: Vector2):
-
+	print("Attack signal received with weapon_push:", weapon_push, " and weapon_dir:", weapon_dir)
 	if is_rolling or is_recoiling:
 		return
-
-	# --- Lógica para definir animation_dir para o ataque (NOVO) ---
-	var mouse_position = get_global_mouse_position()
-	# Usamos a posição Y do mouse em relação à posição global do jogador
-	if mouse_position.y < global_position.y: # Mouse acima do jogador (ataque para cima/costas)
-		animation_dir = 1
-	else: # Mouse abaixo ou na mesma linha que o jogador (ataque para baixo/frente)
-		animation_dir = 0
-	# --- Fim Lógica para definir animation_dir para o ataque ---
-
-
-
-	print("Attack signal received with weapon_push:", weapon_push, " and weapon_dir:", weapon_dir)
-
 
 	is_attacking = true
 	_set_movement_state(MovementState.ATTACKING)
 
 	attack_lunge_speed_current = weapon_push
 	attack_lunge_direction = weapon_dir.normalized()
-
-	# --- Lógica de Virar o Sprite Horizontalmente para o Ataque ---
-	if attack_lunge_direction.x > 0: # Atacando para a direita
+	
+	# --- Sprite Flipping Logic for Attack ---
+	if attack_lunge_direction.x > 0: # Attacking right
 		player_sprite.flip_h = true
-	elif attack_lunge_direction.x < 0: # Atacando para a esquerda
+	elif attack_lunge_direction.x < 0: # Attacking left
 		player_sprite.flip_h = false
-	# --- Fim Lógica de Virar o Sprite Horizontalmente para o Ataque ---
+	# --- End Sprite Flipping Logic for Attack ---
 
 	velocity = attack_lunge_direction * attack_lunge_speed_current
 
@@ -288,11 +231,3 @@ func _end_attack_lunge():
 	else:
 		_set_movement_state(MovementState.IDLE)
 		velocity = Vector2.ZERO
-
-func take_damage(amount: int) -> void:
-	health.take_damage(amount)
-
-func _on_died():
-	print("Personagem Morreu!")
-	###MUDAR AQUI PARA SURGIR UMA TELA DE RESSUCITAR
-	queue_free()
