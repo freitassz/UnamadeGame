@@ -17,7 +17,7 @@ y_sort_enabled = true
 script = ExtResource("1_287tu")
 
 [node name="Health" parent="." instance=ExtResource("2_0830c")]
-max_health = 500
+max_health = 60
 
 [node name="Sprite" type="Sprite2D" parent="."]
 z_as_relative = false

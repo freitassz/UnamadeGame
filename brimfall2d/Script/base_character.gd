@@ -57,11 +57,6 @@ func _ready():
 		character_sprite.visible = true
 
 	health.connect("died", Callable(self, "_on_died"))
-	# Instead of connecting here, consider moving the "recoil" signal emission
-	# from Combo1/2 to the parent 'weapon' script, and have the weapon
-	# emit a more generic "player_hit_by_weapon" or "weapon_applied_knockback"
-	# signal with relevant data, which then calls the unified 'apply_knockback'
-	# on the player. For now, we'll connect it to the new unified function.
 	combo1.connect("recoil", Callable(self, "_on_hitbox_recoil_signal"))
 	combo2.connect("recoil", Callable(self, "_on_hitbox_recoil_signal"))
 	weapon.connect("attack", Callable(self, "_is_attacking"))
@@ -240,7 +235,6 @@ func _handle_recoil(delta: float) -> void:
 			velocity = Vector2.ZERO
 
 func _is_attacking(weapon_push: float, weapon_dir: Vector2):
-
 	if is_rolling or is_recoiling:
 		return
 
@@ -252,10 +246,6 @@ func _is_attacking(weapon_push: float, weapon_dir: Vector2):
 	else: # Mouse abaixo ou na mesma linha que o jogador (ataque para baixo/frente)
 		animation_dir = 0
 	# --- Fim Lógica para definir animation_dir para o ataque ---
-
-
-
-	print("Attack signal received with weapon_push:", weapon_push, " and weapon_dir:", weapon_dir)
 
 
 	is_attacking = true

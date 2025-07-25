@@ -261,39 +261,26 @@ func apply_knockback(force: float, hit_position: Vector2) -> void:
 
 ## --- Funções de Ataque Simplificadas ---
 func perform_attack() -> void:
-	# Escolhe aleatoriamente entre attack_1 e attack_2
 	var attack_choice = randi_range(1, 2)
 	if attack_choice == 1:
 		attack_1()
 	else:
 		attack_2()
-	# A transição de estado é feita DENTRO de attack_1/attack_2 se eles forem um ataque com duração (como o dash)
-	# ou após a chamada se for um ataque instantâneo (como attack_2 continua sendo).
 
 func attack_1():
 	print("Ataque 1 lançado: DASH!")
-	if target:
-		current_enemy_state = EnemyState.DASHING_ATTACK # Entra no novo estado de dash
-		dash_direction = (target.global_position - global_position).normalized()
-		current_dash_time = dash_duration
-		# O dano pode ser aplicado aqui ou em _physics_process no estado DASHING_ATTACK
-		# quando o inimigo colidir com o player.
-		# Exemplo: attack_component.deal_damage(target, 20) # Dano imediato ao iniciar o dash
-	else:
-		# Se não houver alvo para o dash, volta para o cooldown pós-ataque
-		current_enemy_state = EnemyState.POST_ATTACK_COOLDOWN
-		current_post_attack_cooldown = randf_range(post_attack_cooldown_min, post_attack_cooldown_max)
-		print("Não há alvo para o dash. Inimigo em POST_ATTACK_COOLDOWN.")
+
+	current_enemy_state = EnemyState.POST_ATTACK_COOLDOWN
+	current_post_attack_cooldown = randf_range(post_attack_cooldown_min, post_attack_cooldown_max)
+	print("Não há alvo para o dash. Inimigo em POST_ATTACK_COOLDOWN.")
 
 func attack_2():
 	print("Ataque 2 lançado: Ataque normal.")
-	# Adicione sua lógica de ataque 2 aqui (animação, dano, etc.)
-	# Ex: attack_component.deal_damage(target, 15)
 	
-	# Após um ataque que não é um dash, transiciona para o cooldown pós-ataque
 	current_enemy_state = EnemyState.POST_ATTACK_COOLDOWN
 	current_post_attack_cooldown = randf_range(post_attack_cooldown_min, post_attack_cooldown_max)
 	print("Ataque 2 realizado. Inimigo em POST_ATTACK_COOLDOWN.")
+	print("Ataque 2 lançado: Ataque normal.")
 
 ## --- Funções de Sinal ---
 func _on_chase_area_entered(body: CharacterBody2D) -> void:

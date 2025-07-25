@@ -21,6 +21,10 @@ window/size/mode=2
 window/stretch/mode="viewport"
 window/stretch/aspect="expand"
 
+[global_group]
+
+enemy="Group that have enemys"
+
 [input]
 
 move_left={

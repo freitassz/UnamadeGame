@@ -106,7 +106,7 @@ func play_current_combo_animation():
 		var hitbox = combo_node.find_child("HitBox", true, false)
 		if hitbox and hitbox is Area2D:
 			hitbox.monitoring = true
-			hitbox.set_deferred("monitorable", true)
+			hitbox.monitorable = true 
 
 		var combo_name = "Combo" + str(current_combo_index + 1)
 		if animation_player.has_animation(combo_name):

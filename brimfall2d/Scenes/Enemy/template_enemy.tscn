@@ -1,0 +1,96 @@
+[gd_scene load_steps=11 format=3 uid="uid://dkmh3njq60d44"]
+
+[ext_resource type="Script" uid="uid://b3pqwbslmkwbk" path="res://Script/HurtBox.gd" id="1_3sh34"]
+[ext_resource type="Script" uid="uid://5gkdkfh4pvjf" path="res://Script/template_enemy_script.gd" id="1_p4dx7"]
+[ext_resource type="Texture2D" uid="uid://5kslgx7eff4d" path="res://Assets/Interrogation dot.png" id="1_unb3s"]
+[ext_resource type="Script" uid="uid://c26g0h8geemc0" path="res://Script/HitBox.gd" id="2_unb3s"]
+[ext_resource type="PackedScene" uid="uid://bearj4oojp58g" path="res://Scenes/health.tscn" id="3_p4dx7"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_ah7j6"]
+radius = 9.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_iw4n8"]
+radius = 9.0
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_tnpt3"]
+radius = 6.0
+height = 16.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_gg3w7"]
+radius = 180.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_krp6e"]
+radius = 30.0167
+
+[node name="Template_Enemy" type="CharacterBody2D" groups=["enemy"]]
+z_as_relative = false
+y_sort_enabled = true
+collision_layer = 4
+collision_mask = 7
+script = ExtResource("1_p4dx7")
+
+[node name="Navigation" type="NavigationAgent2D" parent="."]
+navigation_layers = 3
+path_postprocessing = 1
+avoidance_enabled = true
+avoidance_layers = 3
+avoidance_mask = 3
+
+[node name="Body" type="Node2D" parent="."]
+z_as_relative = false
+y_sort_enabled = true
+
+[node name="Sprite" type="Sprite2D" parent="Body"]
+z_as_relative = false
+y_sort_enabled = true
+texture_filter = 1
+position = Vector2(0, -6)
+texture = ExtResource("1_unb3s")
+
+[node name="HurtBox" type="Area2D" parent="Body/Sprite"]
+position = Vector2(0, 2)
+script = ExtResource("1_3sh34")
+metadata/_custom_type_script = "uid://b3pqwbslmkwbk"
+
+[node name="Collision" type="CollisionShape2D" parent="Body/Sprite/HurtBox"]
+shape = SubResource("CircleShape2D_ah7j6")
+
+[node name="Attack" type="Node2D" parent="Body"]
+
+[node name="HitBox" type="Area2D" parent="Body/Attack"]
+position = Vector2(0, -4)
+script = ExtResource("2_unb3s")
+player_knockback = 100
+metadata/_custom_type_script = "uid://c26g0h8geemc0"
+
+[node name="Collision" type="CollisionShape2D" parent="Body/Attack/HitBox"]
+shape = SubResource("CircleShape2D_iw4n8")
+
+[node name="Health" parent="Body" instance=ExtResource("3_p4dx7")]
+max_health = 200
+
+[node name="Collision" type="CollisionShape2D" parent="."]
+position = Vector2(0, -2)
+rotation = 1.5708
+shape = SubResource("CapsuleShape2D_tnpt3")
+
+[node name="ChaseArea" type="Area2D" parent="."]
+position = Vector2(0, -4)
+collision_layer = 2
+collision_mask = 2
+
+[node name="Collision" type="CollisionShape2D" parent="ChaseArea"]
+shape = SubResource("CircleShape2D_gg3w7")
+
+[node name="AttackArea" type="Area2D" parent="."]
+position = Vector2(0, -4)
+collision_layer = 2
+collision_mask = 2
+
+[node name="Collision" type="CollisionShape2D" parent="AttackArea"]
+shape = SubResource("CircleShape2D_krp6e")
+
+[connection signal="velocity_computed" from="Navigation" to="." method="_on_navigation_velocity_computed"]
+[connection signal="area_entered" from="ChaseArea" to="." method="_on_chase_area_entered"]
+[connection signal="area_exited" from="ChaseArea" to="." method="_on_chase_area_exited"]
+[connection signal="area_entered" from="AttackArea" to="." method="_on_attack_area_entered"]

@@ -22,16 +22,17 @@ radius = 178.003
 [sub_resource type="CircleShape2D" id="CircleShape2D_f4si1"]
 radius = 33.0151
 
-[node name="Slime" type="CharacterBody2D"]
+[node name="Slime" type="CharacterBody2D" groups=["enemy"]]
 z_as_relative = false
 y_sort_enabled = true
 collision_layer = 4
-collision_mask = 3
+collision_mask = 7
 platform_on_leave = 2
 platform_floor_layers = 4294901760
 script = ExtResource("1_paq7w")
 move_speed = 30.0
 dash_speed = 150.0
+dash_duration = 0.3
 
 [node name="Navigation" type="NavigationAgent2D" parent="."]
 target_desired_distance = 2.0
@@ -68,17 +69,19 @@ shape = SubResource("CircleShape2D_5gljc")
 [node name="Attack" type="Node2D" parent="Body"]
 
 [node name="HitBox" type="Area2D" parent="Body/Attack"]
+collision_layer = 0
+collision_mask = 0
 script = ExtResource("4_f4si1")
-knockback = 60
+player_knockback = 70
 metadata/_custom_type_script = "uid://c26g0h8geemc0"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Body/Attack/HitBox"]
 shape = SubResource("CircleShape2D_vblni")
 
-[node name="Health" parent="." instance=ExtResource("1_aiwxb")]
+[node name="Health" parent="Body" instance=ExtResource("1_aiwxb")]
 z_as_relative = false
 y_sort_enabled = true
-max_health = 500
+max_health = 50
 
 [node name="Collision" type="CollisionShape2D" parent="."]
 z_as_relative = false
