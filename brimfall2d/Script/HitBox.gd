@@ -12,8 +12,8 @@ class_name HitBox
 signal recoil(player_knockback_value: float, enemy_knockback_value: float, hit_position: Vector2) # Renamed for clarity
 
 func _init() -> void:
-	collision_layer = 2
-	collision_mask = 4
+	collision_layer = 16
+	collision_mask = 32
 
 func _ready() -> void:
 	area_entered.connect(Callable(self, "_on_area_entered"))
