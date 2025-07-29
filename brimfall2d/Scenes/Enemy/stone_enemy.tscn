@@ -1,14 +1,15 @@
-[gd_scene load_steps=16 format=3 uid="uid://04wlmheq7wxm"]
+[gd_scene load_steps=12 format=3 uid="uid://04wlmheq7wxm"]
 
 [ext_resource type="Script" uid="uid://d05frhq3topki" path="res://Script/stone_enemy.gd" id="1_5fc4n"]
 [ext_resource type="Texture2D" uid="uid://danut4qacnnte" path="res://Assets/Stone_Enemy.png" id="2_5fc4n"]
 [ext_resource type="Script" uid="uid://b3pqwbslmkwbk" path="res://Script/HurtBox.gd" id="3_3vd02"]
 [ext_resource type="Script" uid="uid://c26g0h8geemc0" path="res://Script/HitBox.gd" id="4_2gjju"]
 [ext_resource type="PackedScene" uid="uid://bearj4oojp58g" path="res://Scenes/health.tscn" id="5_ai0lb"]
-[ext_resource type="Script" uid="uid://dtuv76hs4mbf0" path="res://Script/Attack.gd" id="6_ai0lb"]
-[ext_resource type="Texture2D" uid="uid://dxiwea1hmfu2n" path="res://Assets/Sword.png" id="7_7makh"]
-[ext_resource type="Texture2D" uid="uid://cn6a6qhcglr5x" path="res://Assets/Hands.png" id="8_3hbsx"]
-[ext_resource type="Texture2D" uid="uid://c7ipe2nsx12l" path="res://Assets/AttackAnimation.png" id="9_c4cfa"]
+[ext_resource type="PackedScene" uid="uid://cw7ttyyoolu65" path="res://Scenes/Weapons/Enemy_Sword.tscn" id="6_cbeb2"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_c4cfa"]
+radius = 5.0
+height = 12.0
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_7makh"]
 radius = 9.0
@@ -16,21 +17,24 @@ radius = 9.0
 [sub_resource type="CircleShape2D" id="CircleShape2D_3hbsx"]
 radius = 9.0
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_uku0m"]
-radius = 16.9014
-
-[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_c4cfa"]
-radius = 6.0
-height = 16.0
-
 [sub_resource type="CircleShape2D" id="CircleShape2D_8q2m7"]
-radius = 180.0
+radius = 186.0
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_js3ts"]
-radius = 30.0167
+radius = 23.0
 
 [node name="Stone_Enemy" type="CharacterBody2D" groups=["enemy"]]
 script = ExtResource("1_5fc4n")
+attack_delay_min = 1.0
+attack_delay_max = 0.2
+post_attack_cooldown_min = 0.87
+post_attack_cooldown_max = 0.545
+dash_duration = 0.93
+
+[node name="BodyCollision" type="CollisionShape2D" parent="."]
+position = Vector2(0, -0.44)
+rotation = 1.5708
+shape = SubResource("CapsuleShape2D_c4cfa")
 
 [node name="Navigation" type="NavigationAgent2D" parent="."]
 navigation_layers = 3
@@ -43,19 +47,20 @@ avoidance_mask = 3
 z_as_relative = false
 y_sort_enabled = true
 
-[node name="Sprite" type="Sprite2D" parent="Body"]
+[node name="HurtBox" type="Sprite2D" parent="Body"]
 z_as_relative = false
 y_sort_enabled = true
 texture_filter = 1
 position = Vector2(0, -6)
 texture = ExtResource("2_5fc4n")
 
-[node name="HurtBox" type="Area2D" parent="Body/Sprite"]
+[node name="HurtBox" type="Area2D" parent="Body/HurtBox"]
 position = Vector2(0, 2)
 script = ExtResource("3_3vd02")
 metadata/_custom_type_script = "uid://b3pqwbslmkwbk"
 
-[node name="Collision" type="CollisionShape2D" parent="Body/Sprite/HurtBox"]
+[node name="Collision" type="CollisionShape2D" parent="Body/HurtBox/HurtBox"]
+visible = false
 shape = SubResource("CircleShape2D_7makh")
 
 [node name="CollisionAttack" type="Node2D" parent="Body"]
@@ -67,75 +72,30 @@ player_knockback = 100
 metadata/_custom_type_script = "uid://c26g0h8geemc0"
 
 [node name="Collision" type="CollisionShape2D" parent="Body/CollisionAttack/HitBox"]
+visible = false
 shape = SubResource("CircleShape2D_3hbsx")
 
 [node name="Health" parent="Body" instance=ExtResource("5_ai0lb")]
 max_health = 100
 
-[node name="Attack" type="Node2D" parent="Body"]
-script = ExtResource("6_ai0lb")
-
-[node name="Combo1" type="Node2D" parent="Body/Attack"]
-z_as_relative = false
-y_sort_enabled = true
-
-[node name="Sword" type="Sprite2D" parent="Body/Attack/Combo1"]
-z_as_relative = false
-texture_filter = 1
-position = Vector2(-4, 14)
-rotation = 3.55524
-texture = ExtResource("7_7makh")
-
-[node name="Hands" type="Sprite2D" parent="Body/Attack/Combo1/Sword"]
-z_as_relative = false
-texture_filter = 1
-position = Vector2(0.0513864, -6.40292)
-rotation = -3.14159
-texture = ExtResource("8_3hbsx")
-offset = Vector2(0, -15.075)
-
-[node name="Sprite2D" type="Sprite2D" parent="Body/Attack/Combo1"]
-texture_filter = 1
-position = Vector2(-20, 0)
-texture = ExtResource("9_c4cfa")
-hframes = 3
-
-[node name="HitBox" type="Area2D" parent="Body/Attack/Combo1/Sprite2D"]
-position = Vector2(19, 0)
-script = ExtResource("4_2gjju")
-knockback = 40
-combo_window_time = 0.7
-attack_interval_time = 0.3
-metadata/_custom_type_script = "uid://c26g0h8geemc0"
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Body/Attack/Combo1/Sprite2D/HitBox"]
-position = Vector2(-19, 0)
-scale = Vector2(0.71, 1.385)
-shape = SubResource("CircleShape2D_uku0m")
-disabled = true
-one_way_collision_margin = 40.0
-
-[node name="Collision" type="CollisionShape2D" parent="."]
-position = Vector2(0, -2)
-rotation = 1.5708
-shape = SubResource("CapsuleShape2D_c4cfa")
+[node name="EnemyWeapon" parent="Body" instance=ExtResource("6_cbeb2")]
 
 [node name="ChaseArea" type="Area2D" parent="."]
-visible = false
 position = Vector2(0, -4)
 collision_layer = 2
 collision_mask = 2
 
 [node name="Collision" type="CollisionShape2D" parent="ChaseArea"]
+visible = false
 shape = SubResource("CircleShape2D_8q2m7")
 
 [node name="AttackArea" type="Area2D" parent="."]
-visible = false
 position = Vector2(0, -4)
 collision_layer = 2
 collision_mask = 2
 
 [node name="Collision" type="CollisionShape2D" parent="AttackArea"]
+visible = false
 shape = SubResource("CircleShape2D_js3ts")
 
 [connection signal="velocity_computed" from="Navigation" to="." method="_on_navigation_velocity_computed"]

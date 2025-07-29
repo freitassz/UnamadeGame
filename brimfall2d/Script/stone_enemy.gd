@@ -1,12 +1,15 @@
 extends CharacterBody2D
+##aaaaaaaaaaaaaaaaaaaaaa
+signal attack1(player_dir: Vector2)
+signal attack2(player_dir: Vector2)
 
-@onready var navigation = $Navigation as NavigationAgent2D # Cast to NavigationAgent2D for clarity
+@onready var navigation = $Navigation as NavigationAgent2D
 @onready var health = $Body/Health
 @onready var chase_area = $ChaseArea
-@onready var attack_area = $AttackArea # Assuming you have an AttackArea2D node
+@onready var attack_area = $AttackArea
 
-# Add an @onready reference to your AttackComponent
-@onready var attack_component = $AttackComponent # Assuming you have an AttackComponent node
+
+@onready var attack_component = $Body/EnemyWeapon
 
 #==========Export==========#
 @export var move_speed: float = 50
@@ -50,6 +53,9 @@ var current_post_attack_cooldown: float = 0.0 # O tempo de cooldown atual
 var dash_direction: Vector2 = Vector2.ZERO # Direção do dash
 var current_dash_time: float = 0.0 # Tempo restante do dash
 
+#====reference====#
+var player_dir = null
+
 func _ready() -> void:
 
 	health.connect("died", Callable(self, "_on_died"))
@@ -57,18 +63,18 @@ func _ready() -> void:
 	if not navigation is NavigationAgent2D:
 		push_error("The 'navigation' node is not a NavigationAgent2D. Please ensure it is correctly set up.")
 		return
-	
+
 	# Ensure the attack_component is correctly assigned
 	if not attack_component:
 		push_error("The 'attack_component' node is not assigned. Please ensure it is correctly set up.")
 		return
-		
+
 	call_deferred("seeker_setup")
 	chase_area.connect("body_entered", Callable(self, "_on_chase_area_entered"))
 	chase_area.connect("body_exited", Callable(self, "_on_chase_area_exited"))
 	attack_area.connect("body_entered", Callable(self, "_on_attack_area_entered"))
 	attack_area.connect("body_exited", Callable(self, "_on_attack_area_exited"))
-	
+
 	# Connect the velocity_computed signal
 	# This line is crucial for avoidance.
 	navigation.velocity_computed.connect(Callable(self, "_on_navigation_velocity_computed"))
@@ -90,35 +96,7 @@ func _physics_process(delta: float) -> void:
 				print("Player visto e dentro da área. Inimigo em CHASING.")
 
 		EnemyState.CHASING:
-			# No estado CHASING, o inimigo só para de caçar se o player sair da área de perseguição.
-			# Ele continua perseguindo mesmo que perca a linha de visão, desde que o player esteja na área.
-			if target and not chase_area.overlaps_body(target):
-				current_enemy_state = EnemyState.IDLE
-				velocity = Vector2.ZERO
-				print("Player saiu da área de perseguição. Inimigo em IDLE.")
-				return # Sai para não tentar navegar
-			
-			# Se o player estiver na área de ataque E puder atacar, transiciona para o estado ATTACKING
-			if target and attack_area.overlaps_body(target) and can_attack:
-				current_enemy_state = EnemyState.ATTACKING
-				current_attack_delay = randf_range(attack_delay_min, attack_delay_max)
-				# can_attack = false é definido em _on_attack_area_entered agora para garantir o comprometimento
-				print("Player dentro da área de ataque. Inimigo em ATTACKING.")
-				return
-
-			# Se o player ainda estiver na área, ele continua navegando até a posição do player.
-			if target:
-				# Set the target position for the navigation agent
-				navigation.target_position = target.global_position
-				
-				# Get the desired velocity *towards* the next path_position
-				# This is the velocity the agent *wants* to move at, before avoidance
-				var next_path_position = navigation.get_next_path_position()
-				var desired_velocity = global_position.direction_to(next_path_position) * move_speed
-				
-				# Tell the navigation agent to compute the avoidance velocity
-				# The actual movement will happen in _on_navigation_velocity_computed
-				navigation.set_velocity(desired_velocity)
+			handle_chasing_state(delta) # Call the new function for CHASING state logic
 
 		EnemyState.ATTACKING:
 			velocity = Vector2.ZERO # Inimigo para de se mover enquanto ataca
@@ -127,21 +105,21 @@ func _physics_process(delta: float) -> void:
 				perform_attack()
 				# A transição para POST_ATTACK_COOLDOWN ou DASHING_ATTACK
 				# é feita DENTRO de perform_attack().
-			
+
 			# Removido: transição para CHASING se o player sair da área de ataque AQUI.
 			# Agora ele se compromete com o ataque.
-			
+
 			if not target: # Se o alvo sumir completamente, volta para IDLE
 				current_enemy_state = EnemyState.IDLE
 				can_attack = true
 				print("Alvo perdido durante o ataque. Inimigo volta para IDLE.")
-		
+
 		EnemyState.POST_ATTACK_COOLDOWN:
 			velocity = Vector2.ZERO # Permanece parado durante o cooldown
 			current_post_attack_cooldown -= delta
 			if current_post_attack_cooldown <= 0:
 				can_attack = true # Permite que o inimigo ataque novamente
-				
+
 				# Após o cooldown, reavalia a situação para decidir o próximo estado
 				if target and attack_area.overlaps_body(target):
 					# Se o player ainda estiver na área de ataque, volta a atacar
@@ -206,6 +184,38 @@ func _physics_process(delta: float) -> void:
 					current_enemy_state = EnemyState.IDLE
 					print("Knockback já zero. Inimigo em IDLE.")
 
+## --- New Function for CHASING State Logic ---
+func handle_chasing_state(delta: float) -> void:
+	# No estado CHASING, o inimigo só para de caçar se o player sair da área de perseguição.
+	# Ele continua perseguindo mesmo que perca a linha de visão, desde que o player esteja na área.
+	if target and not chase_area.overlaps_body(target):
+		current_enemy_state = EnemyState.IDLE
+		velocity = Vector2.ZERO
+		print("Player saiu da área de perseguição. Inimigo em IDLE.")
+		return # Sai para não tentar navegar
+
+	# Se o player estiver na área de ataque E puder atacar, transiciona para o estado ATTACKING
+	if target and attack_area.overlaps_body(target) and can_attack:
+		current_enemy_state = EnemyState.ATTACKING
+		current_attack_delay = randf_range(attack_delay_min, attack_delay_max)
+		# can_attack = false é definido em _on_attack_area_entered agora para garantir o comprometimento
+		print("Player dentro da área de ataque. Inimigo em ATTACKING.")
+		return
+
+	# Se o player ainda estiver na área, ele continua navegando até a posição do player.
+	if target:
+		# Set the target position for the navigation agent
+		navigation.target_position = target.global_position
+
+		# Get the desired velocity *towards* the next path_position
+		# This is the velocity the agent *wants* to move at, before avoidance
+		var next_path_position = navigation.get_next_path_position()
+		var desired_velocity = global_position.direction_to(next_path_position) * move_speed
+
+		# Tell the navigation agent to compute the avoidance velocity
+		# The actual movement will happen in _on_navigation_velocity_computed
+		navigation.set_velocity(desired_velocity)
+
 
 func update_vision() -> void:
 	can_see_target = false # Assume que não pode ver, a menos que provado o contrário
@@ -269,18 +279,14 @@ func perform_attack() -> void:
 		attack_2()
 
 func attack_1():
-	print("Ataque 1 lançado: DASH!")
-
+	emit_signal("attack1", player_dir)
 	current_enemy_state = EnemyState.POST_ATTACK_COOLDOWN
 	current_post_attack_cooldown = randf_range(post_attack_cooldown_min, post_attack_cooldown_max)
-	print("Não há alvo para o dash. Inimigo em POST_ATTACK_COOLDOWN.")
 
 func attack_2():
-	print("Ataque 2 lançado: Ataque normal.")
-	
+	emit_signal("attack2", player_dir)
 	current_enemy_state = EnemyState.POST_ATTACK_COOLDOWN
 	current_post_attack_cooldown = randf_range(post_attack_cooldown_min, post_attack_cooldown_max)
-	print("Ataque 2 realizado. Inimigo em POST_ATTACK_COOLDOWN.")
 
 ## --- Funções de Sinal ---
 func _on_chase_area_entered(body: CharacterBody2D) -> void:
@@ -301,10 +307,10 @@ func _on_chase_area_exited(body: CharacterBody2D) -> void:
 		print("Player saiu da área de perseguição. Inimigo em IDLE.")
 		can_attack = true # Reseta a capacidade de ataque
 
+
 func _on_attack_area_entered(body: CharacterBody2D) -> void:
 	if body == target and current_enemy_state == EnemyState.CHASING and can_attack:
 		current_enemy_state = EnemyState.ATTACKING
 		current_attack_delay = randf_range(attack_delay_min, attack_delay_max)
 		can_attack = false # Define como false AQUI para comprometer o ataque
-		print("Player entrou na área de ataque. Inimigo se compromete com ATTACKING.")
-	
+	player_dir = global_position.direction_to(target.global_position)

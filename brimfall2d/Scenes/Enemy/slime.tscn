@@ -20,7 +20,7 @@ height = 12.0
 radius = 178.003
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_f4si1"]
-radius = 33.0151
+radius = 38.0132
 
 [node name="Slime" type="CharacterBody2D" groups=["enemy"]]
 z_as_relative = false
