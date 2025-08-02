@@ -7,7 +7,7 @@ signal attack2(player_dir: Vector2)
 @onready var health = $Body/Health
 @onready var chase_area = $ChaseArea
 @onready var attack_area = $AttackArea
-
+@onready var enemy_sprite = $Body/EnemySprite
 
 @onready var attack_component = $Body/EnemyWeapon
 
@@ -53,6 +53,14 @@ var current_post_attack_cooldown: float = 0.0 # O tempo de cooldown atual
 var dash_direction: Vector2 = Vector2.ZERO # Direção do dash
 var current_dash_time: float = 0.0 # Tempo restante do dash
 
+# === Variáveis para o Dash de Movimentação (dentro de CHASING) ===
+@export var dash_move_speed: float = 300.0 # Velocidade do dash de movimentação
+@export var dash_move_duration: float = 0.15 # Duração do dash de movimentação em segundos
+@export var dash_move_cooldown: float = 0.5 # Cooldown entre dashes de movimentação
+var current_dash_move_cooldown: float = 0.0
+var is_dashing_move: bool = false
+var dash_move_direction: Vector2 = Vector2.ZERO
+
 #====reference====#
 var player_dir = null
 
@@ -80,7 +88,17 @@ func _ready() -> void:
 	navigation.velocity_computed.connect(Callable(self, "_on_navigation_velocity_computed"))
 
 func _physics_process(delta: float) -> void:
-	# Atualiza a visibilidade em cada frame de física
+# Flip the sprite based on the target's position
+	if target:
+		# Calculate the direction vector from the enemy to the target
+		var dir_to_target = (target.global_position - global_position).x
+	
+		# Flip the sprite based on the horizontal direction to the target
+		if dir_to_target > 0: # Target is to the right
+			enemy_sprite.flip_h = true
+		elif dir_to_target < 0: # Target is to the left
+			enemy_sprite.flip_h = false
+
 	update_vision()
 
 	match current_enemy_state:
@@ -103,11 +121,6 @@ func _physics_process(delta: float) -> void:
 			current_attack_delay -= delta
 			if current_attack_delay <= 0:
 				perform_attack()
-				# A transição para POST_ATTACK_COOLDOWN ou DASHING_ATTACK
-				# é feita DENTRO de perform_attack().
-
-			# Removido: transição para CHASING se o player sair da área de ataque AQUI.
-			# Agora ele se compromete com o ataque.
 
 			if not target: # Se o alvo sumir completamente, volta para IDLE
 				current_enemy_state = EnemyState.IDLE
@@ -135,18 +148,6 @@ func _physics_process(delta: float) -> void:
 					# Se o player estiver fora de ambas as áreas ou for null, volta para IDLE
 					current_enemy_state = EnemyState.IDLE
 					print("Cooldown terminado. Inimigo volta para IDLE.")
-
-		EnemyState.DASHING_ATTACK:
-			if current_dash_time > 0:
-				velocity = dash_direction * dash_speed
-				move_and_slide()
-				current_dash_time -= delta
-			else:
-				# Dash terminou, volta para o cooldown pós-ataque
-				current_enemy_state = EnemyState.POST_ATTACK_COOLDOWN
-				current_post_attack_cooldown = randf_range(post_attack_cooldown_min, post_attack_cooldown_max)
-				print("Dash attack terminou. Inimigo em POST_ATTACK_COOLDOWN.")
-				can_attack = false # Impede que outro ataque seja disparado imediatamente
 
 		EnemyState.KNOCKBACK:
 			if knockback_vector != Vector2.ZERO:
@@ -183,14 +184,34 @@ func _physics_process(delta: float) -> void:
 				else:
 					current_enemy_state = EnemyState.IDLE
 					print("Knockback já zero. Inimigo em IDLE.")
+		EnemyState.DASHING_ATTACK:
+			# Lógica do dash de ataque
+			current_dash_time -= delta
+			if current_dash_time > 0:
+				velocity = dash_direction * dash_speed
+			else:
+				# Após o dash, decide o próximo estado.
+				# Priorize o ataque se o player estiver na área de ataque e puder atacar.
+				if target and attack_area.overlaps_body(target) and can_attack:
+					current_enemy_state = EnemyState.ATTACKING
+					current_attack_delay = randf_range(attack_delay_min, attack_delay_max)
+					can_attack = false
+					print("Dash de ataque terminado. Player na área de ataque. Inimigo em ATTACKING.")
+				elif target and chase_area.overlaps_body(target):
+					current_enemy_state = EnemyState.CHASING
+					print("Dash de ataque terminado. Player na área de perseguição. Inimigo em CHASING.")
+				else:
+					current_enemy_state = EnemyState.IDLE
+					print("Dash de ataque terminado. Inimigo em IDLE.")
+	move_and_slide() # Always call move_and_slide at the end of _physics_process
 
-## --- New Function for CHASING State Logic ---
 func handle_chasing_state(delta: float) -> void:
 	# No estado CHASING, o inimigo só para de caçar se o player sair da área de perseguição.
 	# Ele continua perseguindo mesmo que perca a linha de visão, desde que o player esteja na área.
 	if target and not chase_area.overlaps_body(target):
 		current_enemy_state = EnemyState.IDLE
 		velocity = Vector2.ZERO
+		is_dashing_move = false # Reset dash state
 		print("Player saiu da área de perseguição. Inimigo em IDLE.")
 		return # Sai para não tentar navegar
 
@@ -198,70 +219,127 @@ func handle_chasing_state(delta: float) -> void:
 	if target and attack_area.overlaps_body(target) and can_attack:
 		current_enemy_state = EnemyState.ATTACKING
 		current_attack_delay = randf_range(attack_delay_min, attack_delay_max)
+		is_dashing_move = false # Reset dash state
 		# can_attack = false é definido em _on_attack_area_entered agora para garantir o comprometimento
 		print("Player dentro da área de ataque. Inimigo em ATTACKING.")
 		return
 
-	# Se o player ainda estiver na área, ele continua navegando até a posição do player.
-	if target:
-		# Set the target position for the navigation agent
-		navigation.target_position = target.global_position
+	# Lógica do Dash de Movimentação
+	if is_dashing_move:
+		current_dash_time -= delta
+		if current_dash_time > 0:
+			velocity = dash_move_direction * dash_move_speed
+		else:
+			is_dashing_move = false
+			velocity = Vector2.ZERO # Parar após o dash
+			current_dash_move_cooldown = dash_move_cooldown # Iniciar cooldown
+			print("Dash de movimentação terminou. Iniciando cooldown.")
+	else:
+		# Lógica do cooldown do dash
+		if current_dash_move_cooldown > 0:
+			current_dash_move_cooldown -= delta
+			velocity = Vector2.ZERO # Inimigo parado durante o cooldown do dash
+		else:
+			# Se o cooldown terminou, o inimigo está pronto para o próximo dash
+			if target:
+				# Calcula a direção do dash
+				navigation.target_position = target.global_position
+				var next_path_position = navigation.get_next_path_position()
+				dash_move_direction = global_position.direction_to(next_path_position)
 
-		# Get the desired velocity *towards* the next path_position
-		# This is the velocity the agent *wants* to move at, before avoidance
-		var next_path_position = navigation.get_next_path_position()
-		var desired_velocity = global_position.direction_to(next_path_position) * move_speed
+				# Inicia o dash
+				is_dashing_move = true
+				current_dash_time = dash_move_duration
+				print("Iniciando novo dash de movimentação.")
+			else:
+				velocity = Vector2.ZERO # Se não houver alvo, para.
 
-		# Tell the navigation agent to compute the avoidance velocity
-		# The actual movement will happen in _on_navigation_velocity_computed
-		navigation.set_velocity(desired_velocity)
-
-
-func update_vision() -> void:
-	can_see_target = false # Assume que não pode ver, a menos que provado o contrário
-
-	if target == null:
+func seeker_setup() -> void:
+	# Check if the navigation node is valid before proceeding
+	if not navigation:
+		push_error("NavigationAgent2D node is not assigned or is null.")
 		return
 
-	# Configura os parâmetros do raio
-	var space_state = get_world_2d().direct_space_state
-	var query = PhysicsRayQueryParameters2D.new()
-	query.from = global_position
-	query.to = target.global_position # Raio vai do inimigo ao jogador
-	query.exclude = [self] # Exclui o próprio inimigo da colisão do raio
-	query.collision_mask = collision_mask_obstacles # Define quais camadas o raio vai colidir
-
-	var result = space_state.intersect_ray(query)
-
-	if result:
-		# Se o raio colidiu com algo
-		if result.collider == target:
-			# Se o que o raio colidiu for o próprio alvo, então ele pode ser visto
-			can_see_target = true
-		else:
-			# Se colidiu com outra coisa (um obstáculo), ele não pode ver o alvo
-			can_see_target = false
-	else:
-		# Se o raio não colidiu com nada, significa que não há obstáculos entre o inimigo e o alvo
-		can_see_target = true
-
-func seeker_setup():
-	await get_tree().physics_frame
-	if target and navigation is NavigationAgent2D: # Add check for navigation type
-		navigation.target_position = target.global_position
+	# Ensure the navigation agent is linked to a NavigationServer2D
+	# This is often set up in the scene, but good to double-check if issues arise.
+	if not get_tree().get_first_node_in_group("navigation_mesh"):
+		print("No NavigationRegion2D found in group 'navigation_mesh'. Navigation might not work as expected.")
 
 func _on_navigation_velocity_computed(safe_velocity: Vector2) -> void:
-	# Only apply the computed velocity if the enemy is in the CHASING state
-	if current_enemy_state == EnemyState.CHASING:
+	# Only apply computed velocity if not dashing or in knockback/attacking
+	if current_enemy_state == EnemyState.CHASING and not is_dashing_move:
 		velocity = safe_velocity
-		move_and_slide()
+	elif current_enemy_state == EnemyState.DASHING_ATTACK:
+		# During a dashing attack, we override the navigation velocity
+		pass # Velocity is already set by the dashing attack logic
+	elif current_enemy_state == EnemyState.KNOCKBACK:
+		pass # Velocity is handled by knockback logic
+	elif current_enemy_state == EnemyState.ATTACKING or current_enemy_state == EnemyState.POST_ATTACK_COOLDOWN:
+		velocity = Vector2.ZERO # Stay still during attack or cooldown
 
-func take_damage(amount: int) -> void:
-	health.take_damage(amount)
+	# Ensure movement is applied here after velocity is determined
+	# (Note: move_and_slide is now called once at the end of _physics_process)
 
-func _on_died():
-	print("Inimigo morreu!")
-	queue_free()
+func _on_chase_area_entered(body: Node2D) -> void:
+	if body is CharacterBody2D and body.name == "Player":
+		target = body
+		# The state change to CHASING is now handled in _physics_process based on `can_see_target`
+		print("Player entered chase area. Target set.")
+
+func _on_chase_area_exited(body: Node2D) -> void:
+	if body is CharacterBody2D and body.name == "Player":
+		target = null
+		# The state will transition to IDLE in _physics_process if target is null or outside areas
+		print("Player exited chase area. Target nullified.")
+
+func _on_attack_area_entered(body: Node2D) -> void:
+	if body is CharacterBody2D and body.name == "Player":
+		if current_enemy_state == EnemyState.CHASING and can_attack:
+			current_enemy_state = EnemyState.ATTACKING
+			current_attack_delay = randf_range(attack_delay_min, attack_delay_max)
+			can_attack = false # Commit to attacking
+			print("Player entered attack area. Transitioning to ATTACKING.")
+
+func _on_attack_area_exited(body: Node2D) -> void:
+	if body is CharacterBody2D and body.name == "Player":
+		# If the player exits the attack area during ATTACKING,
+		# the enemy should transition to CHASING (if still in chase area) or IDLE.
+		if current_enemy_state == EnemyState.ATTACKING or current_enemy_state == EnemyState.POST_ATTACK_COOLDOWN:
+			if target and chase_area.overlaps_body(target):
+				current_enemy_state = EnemyState.CHASING
+				can_attack = true # Allow re-evaluation for attack later
+				print("Player exited attack area during attack/cooldown. Transitioning to CHASING.")
+			else:
+				current_enemy_state = EnemyState.IDLE
+				can_attack = true # Allow re-evaluation for attack later
+				print("Player exited attack area. No longer in chase area. Transitioning to IDLE.")
+
+func perform_attack() -> void:
+	if target and attack_area.overlaps_body(target):
+		player_dir = (target.global_position - global_position).normalized()
+		var attack_type = randi_range(1, 2) # Decide between attack1 and attack2
+		if attack_type == 1:
+			emit_signal("attack1", player_dir)
+			print("Performing attack 1.")
+		else:
+			emit_signal("attack2", player_dir)
+			print("Performing attack 2.")
+
+		# After performing an attack, go into POST_ATTACK_COOLDOWN
+		current_enemy_state = EnemyState.POST_ATTACK_COOLDOWN
+		current_post_attack_cooldown = randf_range(post_attack_cooldown_min, post_attack_cooldown_max)
+		print("Attack performed. Entering POST_ATTACK_COOLDOWN.")
+	else:
+		# If somehow perform_attack is called but target is not in range,
+		# transition back to chasing or idle.
+		if target and chase_area.overlaps_body(target):
+			current_enemy_state = EnemyState.CHASING
+			can_attack = true # Allow new attack attempt
+			print("No target in range for attack. Back to CHASING.")
+		else:
+			current_enemy_state = EnemyState.IDLE
+			can_attack = true
+			print("No target in range for attack. Back to IDLE.")
 
 func apply_knockback(force: float, hit_position: Vector2) -> void:
 	current_enemy_state = EnemyState.KNOCKBACK
@@ -269,48 +347,34 @@ func apply_knockback(force: float, hit_position: Vector2) -> void:
 	var final_knockback_force = force / knockback_resistance
 	knockback_vector = knockback_direction * final_knockback_force
 	can_attack = true # Reseta a capacidade de ataque após o knockback
+	_knockback_effect()
 
-## --- Funções de Ataque Simplificadas ---
-func perform_attack() -> void:
-	var attack_choice = randi_range(1, 2)
-	if attack_choice == 1:
-		attack_1()
+func _on_died() -> void:
+	print("Enemy died.")
+	queue_free()
+
+func update_vision() -> void:
+	if not target:
+		can_see_target = false
+		return
+
+	var space_state = get_world_2d().direct_space_state
+	var query = PhysicsRayQueryParameters2D.create(global_position, target.global_position)
+	query.collide_with_areas = true # Ray can collide with areas
+	query.collision_mask = collision_mask_obstacles # Only collide with obstacles
+
+	var result = space_state.intersect_ray(query)
+
+	if result.is_empty():
+		can_see_target = true
 	else:
-		attack_2()
+		# Check if the object hit by the ray is the target itself
+		# If the ray hits something else before the target, then vision is blocked
+		if result.has("collider") and result.collider == target:
+			can_see_target = true
+		else:
+			can_see_target = false
 
-func attack_1():
-	emit_signal("attack1", player_dir)
-	current_enemy_state = EnemyState.POST_ATTACK_COOLDOWN
-	current_post_attack_cooldown = randf_range(post_attack_cooldown_min, post_attack_cooldown_max)
-
-func attack_2():
-	emit_signal("attack2", player_dir)
-	current_enemy_state = EnemyState.POST_ATTACK_COOLDOWN
-	current_post_attack_cooldown = randf_range(post_attack_cooldown_min, post_attack_cooldown_max)
-
-## --- Funções de Sinal ---
-func _on_chase_area_entered(body: CharacterBody2D) -> void:
-	# Esta função permanece, mas a lógica de ativação para CHASING
-	# agora depende da visão (em _physics_process no estado IDLE).
-	pass
-
-func _on_chase_area_exited(body: CharacterBody2D) -> void:
-	# O inimigo só volta para IDLE se não estiver em um estado de ataque ou knockback.
-	# A saída da área de perseguição não deve cancelar um ataque em andamento.
-	if body == target and \
-	current_enemy_state != EnemyState.KNOCKBACK and \
-	current_enemy_state != EnemyState.POST_ATTACK_COOLDOWN and \
-	current_enemy_state != EnemyState.ATTACKING and \
-	current_enemy_state != EnemyState.DASHING_ATTACK:
-		current_enemy_state = EnemyState.IDLE
-		velocity = Vector2.ZERO # Garante que o inimigo pare de se mover
-		print("Player saiu da área de perseguição. Inimigo em IDLE.")
-		can_attack = true # Reseta a capacidade de ataque
-
-
-func _on_attack_area_entered(body: CharacterBody2D) -> void:
-	if body == target and current_enemy_state == EnemyState.CHASING and can_attack:
-		current_enemy_state = EnemyState.ATTACKING
-		current_attack_delay = randf_range(attack_delay_min, attack_delay_max)
-		can_attack = false # Define como false AQUI para comprometer o ataque
-	player_dir = global_position.direction_to(target.global_position)
+func _knockback_effect():
+	$HitFlashAnimation.play("hit")
+	

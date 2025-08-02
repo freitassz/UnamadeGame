@@ -1,10 +1,20 @@
-[gd_scene load_steps=17 format=3 uid="uid://bug2v2r7cvrjy"]
+[gd_scene load_steps=22 format=3 uid="uid://bug2v2r7cvrjy"]
 
 [ext_resource type="Script" uid="uid://bicvtqr30a8d6" path="res://Script/base_character.gd" id="1_foqlb"]
 [ext_resource type="Texture2D" uid="uid://buyud6oouchic" path="res://Assets/MageAnimation.png" id="2_5qvmk"]
+[ext_resource type="Shader" uid="uid://cdgo7va78jeil" path="res://Shaders/FlashWhite.gdshader" id="2_g1gcw"]
 [ext_resource type="Script" uid="uid://b3pqwbslmkwbk" path="res://Script/HurtBox.gd" id="3_hfjlv"]
 [ext_resource type="PackedScene" uid="uid://d3gefvr6q5463" path="res://Scenes/Weapons/Sword.tscn" id="3_sv1ig"]
 [ext_resource type="PackedScene" uid="uid://bearj4oojp58g" path="res://Scenes/health.tscn" id="4_5qvmk"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_5qvmk"]
+radius = 3.0
+height = 10.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_n024f"]
+shader = ExtResource("2_g1gcw")
+shader_parameter/hit_flash_color = Color(1, 1, 1, 1)
+shader_parameter/hit_flash_on = false
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_g1gcw"]
 radius = 6.0
@@ -162,6 +172,18 @@ tracks/2/keys = {
 "update": 1,
 "values": [Vector2i(0, 0)]
 }
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("CollisionShape2D:disabled")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
 
 [sub_resource type="Animation" id="Animation_n024f"]
 resource_name = "ROLL"
@@ -202,6 +224,18 @@ tracks/2/keys = {
 "transitions": PackedFloat32Array(1, 1, 1, 1),
 "update": 1,
 "values": [16, 17, 18, 19]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("CollisionShape2D:disabled")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0, 0.582421),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [true, false]
 }
 
 [sub_resource type="Animation" id="Animation_g1gcw"]
@@ -274,9 +308,43 @@ _data = {
 &"WALK_BACK": SubResource("Animation_edl7v")
 }
 
-[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_5qvmk"]
-radius = 3.0
-height = 10.0
+[sub_resource type="Animation" id="Animation_l2toe"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Body/BodyTexture:material:shader_parameter/hit_flash_on")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+
+[sub_resource type="Animation" id="Animation_tph48"]
+resource_name = "hit"
+length = 0.2
+step = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Body/BodyTexture:material:shader_parameter/hit_flash_on")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.2),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [true, false]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_ct4hk"]
+_data = {
+&"RESET": SubResource("Animation_l2toe"),
+&"hit": SubResource("Animation_tph48")
+}
 
 [node name="BaseCharacter" type="CharacterBody2D" groups=["player"]]
 z_as_relative = false
@@ -287,6 +355,12 @@ platform_on_leave = 2
 platform_floor_layers = 4294901760
 script = ExtResource("1_foqlb")
 
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, 3)
+rotation = 1.5708
+shape = SubResource("CapsuleShape2D_5qvmk")
+disabled = true
+
 [node name="Body" type="Node2D" parent="."]
 z_as_relative = false
 y_sort_enabled = true
@@ -295,6 +369,7 @@ y_sort_enabled = true
 z_as_relative = false
 y_sort_enabled = true
 texture_filter = 1
+material = SubResource("ShaderMaterial_n024f")
 position = Vector2(0, -4)
 texture = ExtResource("2_5qvmk")
 hframes = 4
@@ -310,19 +385,19 @@ shape = SubResource("CircleShape2D_g1gcw")
 
 [node name="Weapon" parent="Body" instance=ExtResource("3_sv1ig")]
 
-[node name="Camera2D" type="Camera2D" parent="."]
-zoom = Vector2(4, 4)
-
 [node name="Health" parent="." instance=ExtResource("4_5qvmk")]
 position = Vector2(0, 4)
 max_health = 500
+
+[node name="Camera2D" type="Camera2D" parent="."]
+zoom = Vector2(4, 4)
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 libraries = {
 &"": SubResource("AnimationLibrary_g1gcw")
 }
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(0, 3)
-rotation = 1.5708
-shape = SubResource("CapsuleShape2D_5qvmk")
+[node name="HitFlashAnimation" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("AnimationLibrary_ct4hk")
+}

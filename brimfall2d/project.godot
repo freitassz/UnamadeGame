@@ -21,6 +21,15 @@ window/size/mode=2
 window/stretch/mode="viewport"
 window/stretch/aspect="expand"
 
+[file_customization]
+
+folder_colors={
+"res://Assets/": "green",
+"res://Scenes/": "blue",
+"res://Script/": "pink",
+"res://Shaders/": "gray"
+}
+
 [global_group]
 
 enemy="Group that have enemys"

@@ -52,6 +52,10 @@ var is_attacking: bool = false
 var attack_lunge_speed_current: float = 0.0
 var attack_lunge_direction: Vector2 = Vector2.ZERO
 
+var timeScale = 0.1
+var duration = 0.4
+
+
 func _ready():
 	if character_sprite:
 		character_sprite.visible = true
@@ -216,7 +220,6 @@ func _on_hitbox_recoil_signal(player_knockback_value: float, enemy_knockback_val
 	# Assuming 'player_knockback_value' is the force to apply to the player
 	apply_knockback(player_knockback_value, hit_position)
 
-
 func _handle_recoil(delta: float) -> void:
 	velocity = recoil_vector
 	move_and_slide()
@@ -280,9 +283,21 @@ func _end_attack_lunge():
 		velocity = Vector2.ZERO
 
 func take_damage(amount: int) -> void:
+	if is_rolling:
+		return
 	health.take_damage(amount)
+	frame_freeze(timeScale, duration)
+	_knockback_effect()
 
 func _on_died():
 	print("Personagem Morreu!")
 	###MUDAR AQUI PARA SURGIR UMA TELA DE RESSUCITAR
 	queue_free()
+
+func _knockback_effect():
+	$HitFlashAnimation.play("hit")
+
+func frame_freeze(timeScale, duration):
+	Engine.time_scale = timeScale
+	await(get_tree().create_timer(duration * timeScale).timeout)
+	Engine.time_scale = 1.0

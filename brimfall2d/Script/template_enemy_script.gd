@@ -282,7 +282,6 @@ func attack_2():
 	print("Ataque 2 realizado. Inimigo em POST_ATTACK_COOLDOWN.")
 	print("Ataque 2 lançado: Ataque normal.")
 
-## --- Funções de Sinal ---
 func _on_chase_area_entered(body: CharacterBody2D) -> void:
 	# Esta função permanece, mas a lógica de ativação para CHASING
 	# agora depende da visão (em _physics_process no estado IDLE).

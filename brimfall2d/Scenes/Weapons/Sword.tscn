@@ -212,7 +212,7 @@ hframes = 3
 [node name="HitBox" type="Area2D" parent="Combos/Combo2/Sprite2D"]
 position = Vector2(30, 0)
 script = ExtResource("3_10xpx")
-knockback = 100
+knockback = 60
 player_knockback = 70
 weapon_push = 120.0
 attack_interval_time = 0.3
