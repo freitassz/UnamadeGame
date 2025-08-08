@@ -146,6 +146,7 @@ texture = ExtResource("4_pqdc7")
 
 [node name="Navigation" type="NavigationAgent2D" parent="Tools"]
 path_desired_distance = 0.1
+navigation_layers = 3
 path_postprocessing = 1
 avoidance_enabled = true
 radius = 8.0
