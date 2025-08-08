@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://uegrn8t03hcr"]
+
+[ext_resource type="Script" uid="uid://co4axkrmpklh2" path="res://Scenes/Enemy/movement.gd" id="1_er76d"]
+
+[node name="Movement" type="Node"]
+script = ExtResource("1_er76d")

@@ -10,7 +10,6 @@ extends CharacterBody2D
 @onready var hit_animation = $Animations/HitFlashAnimation
 
 #==========Export==========#
-@export var move_speed: float = 50
 @export var target: CharacterBody2D = null
 @export var knockback_resistance := 1.0
 @export var knockback_friction := 100.0

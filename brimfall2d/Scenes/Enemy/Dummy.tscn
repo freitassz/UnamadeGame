@@ -1,21 +1,20 @@
-[gd_scene load_steps=18 format=3 uid="uid://dkmh3njq60d44"]
+[gd_scene load_steps=16 format=3 uid="uid://dnmlg3j6hke73"]
 
-[ext_resource type="Script" uid="uid://b3pqwbslmkwbk" path="res://Script/HurtBox.gd" id="1_3sh34"]
-[ext_resource type="Script" uid="uid://5gkdkfh4pvjf" path="res://Script/template_enemy_script.gd" id="1_p4dx7"]
-[ext_resource type="Texture2D" uid="uid://5kslgx7eff4d" path="res://Assets/Interrogation dot.png" id="1_unb3s"]
-[ext_resource type="Shader" uid="uid://cdgo7va78jeil" path="res://Shaders/FlashWhite.gdshader" id="2_iw4n8"]
-[ext_resource type="Script" uid="uid://c26g0h8geemc0" path="res://Script/HitBox.gd" id="2_unb3s"]
-[ext_resource type="PackedScene" uid="uid://bearj4oojp58g" path="res://Scenes/health.tscn" id="3_p4dx7"]
-[ext_resource type="PackedScene" uid="uid://uegrn8t03hcr" path="res://Scenes/movement.tscn" id="4_ah7j6"]
-[ext_resource type="Texture2D" uid="uid://bq651eg18h6d3" path="res://Assets/Shadow.png" id="4_tnpt3"]
+[ext_resource type="Script" uid="uid://b4pay72a04vxs" path="res://Script/Dummy.gd" id="1_u0xdl"]
+[ext_resource type="Shader" uid="uid://cdgo7va78jeil" path="res://Shaders/FlashWhite.gdshader" id="2_nuje8"]
+[ext_resource type="Texture2D" uid="uid://too7m8lkmx7f" path="res://Assets/Dummy.png" id="3_u0xdl"]
+[ext_resource type="Texture2D" uid="uid://bq651eg18h6d3" path="res://Assets/Shadow.png" id="4_u0xdl"]
+[ext_resource type="PackedScene" uid="uid://bearj4oojp58g" path="res://Scenes/health.tscn" id="4_v1swa"]
+[ext_resource type="PackedScene" uid="uid://uegrn8t03hcr" path="res://Scenes/movement.tscn" id="5_1dccf"]
+[ext_resource type="Script" uid="uid://b3pqwbslmkwbk" path="res://Script/HurtBox.gd" id="7_o5cmx"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_tnpt3"]
-radius = 6.0
-height = 16.0
+radius = 4.0
+height = 12.0
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_tnpt3"]
 resource_local_to_scene = true
-shader = ExtResource("2_iw4n8")
+shader = ExtResource("2_nuje8")
 shader_parameter/hit_flash_color = Color(1, 1, 1, 1)
 shader_parameter/hit_flash_on = false
 
@@ -57,9 +56,6 @@ _data = {
 &"hit": SubResource("Animation_3vd02")
 }
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_iw4n8"]
-radius = 9.0
-
 [sub_resource type="CircleShape2D" id="CircleShape2D_ah7j6"]
 radius = 9.0
 
@@ -69,16 +65,16 @@ radius = 180.0
 [sub_resource type="CircleShape2D" id="CircleShape2D_krp6e"]
 radius = 30.0167
 
-[node name="Template_Enemy" type="CharacterBody2D" groups=["enemy"]]
+[node name="Dummy" type="CharacterBody2D" groups=["enemy"]]
 z_as_relative = false
 y_sort_enabled = true
 collision_layer = 4
 collision_mask = 7
-script = ExtResource("1_p4dx7")
+script = ExtResource("1_u0xdl")
 
 [node name="Collision" type="CollisionShape2D" parent="."]
 visible = false
-position = Vector2(0, -2)
+position = Vector2(0, 1)
 rotation = 1.5708
 shape = SubResource("CapsuleShape2D_tnpt3")
 
@@ -92,13 +88,13 @@ y_sort_enabled = true
 texture_filter = 1
 material = SubResource("ShaderMaterial_tnpt3")
 position = Vector2(0, -6)
-texture = ExtResource("1_unb3s")
+texture = ExtResource("3_u0xdl")
 
 [node name="Shadow" type="Sprite2D" parent="Body/EnemySprite"]
 z_index = -1
 texture_filter = 1
-position = Vector2(0, 8)
-texture = ExtResource("4_tnpt3")
+position = Vector2(0, 9)
+texture = ExtResource("4_u0xdl")
 
 [node name="Tools" type="Node2D" parent="."]
 
@@ -109,10 +105,12 @@ avoidance_enabled = true
 avoidance_layers = 3
 avoidance_mask = 3
 
-[node name="Health" parent="Tools" instance=ExtResource("3_p4dx7")]
-max_health = 200
+[node name="Health" parent="Tools" instance=ExtResource("4_v1swa")]
+max_health = 100000
 
-[node name="Movement" parent="Tools" instance=ExtResource("4_ah7j6")]
+[node name="Movement" parent="Tools" node_paths=PackedStringArray("parent_character") instance=ExtResource("5_1dccf")]
+parent_character = NodePath("../..")
+move_speed = 0.0
 
 [node name="Animations" type="Node2D" parent="."]
 
@@ -125,18 +123,9 @@ libraries = {
 [node name="Areas" type="Node2D" parent="."]
 visible = false
 
-[node name="HitBox" type="Area2D" parent="Areas"]
-position = Vector2(0, -4)
-script = ExtResource("2_unb3s")
-player_knockback = 120
-metadata/_custom_type_script = "uid://c26g0h8geemc0"
-
-[node name="Collision" type="CollisionShape2D" parent="Areas/HitBox"]
-shape = SubResource("CircleShape2D_iw4n8")
-
 [node name="HurtBox" type="Area2D" parent="Areas"]
 position = Vector2(0, -4)
-script = ExtResource("1_3sh34")
+script = ExtResource("7_o5cmx")
 metadata/_custom_type_script = "uid://b3pqwbslmkwbk"
 
 [node name="Collision" type="CollisionShape2D" parent="Areas/HurtBox"]

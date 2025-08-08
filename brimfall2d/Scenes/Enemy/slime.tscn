@@ -1,20 +1,102 @@
-[gd_scene load_steps=11 format=3 uid="uid://cp8k7k6l80b2f"]
+[gd_scene load_steps=16 format=3 uid="uid://cp8k7k6l80b2f"]
 
 [ext_resource type="PackedScene" uid="uid://bearj4oojp58g" path="res://Scenes/health.tscn" id="1_aiwxb"]
 [ext_resource type="Script" uid="uid://cn0ynv0tpsdoo" path="res://Script/slime.gd" id="1_paq7w"]
 [ext_resource type="Texture2D" uid="uid://5oemtvit8j8j" path="res://Assets/Slime.png" id="2_paq7w"]
 [ext_resource type="Script" uid="uid://b3pqwbslmkwbk" path="res://Script/HurtBox.gd" id="3_f4si1"]
 [ext_resource type="Script" uid="uid://c26g0h8geemc0" path="res://Script/HitBox.gd" id="4_f4si1"]
-
-[sub_resource type="CircleShape2D" id="CircleShape2D_5gljc"]
-radius = 6.0
-
-[sub_resource type="CircleShape2D" id="CircleShape2D_vblni"]
-radius = 7.0
+[ext_resource type="Texture2D" uid="uid://bq651eg18h6d3" path="res://Assets/Shadow.png" id="4_pqdc7"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_paq7w"]
 radius = 3.5
 height = 12.0
+
+[sub_resource type="Animation" id="Animation_pqdc7"]
+resource_name = "IDLE"
+length = 0.6
+loop_mode = 1
+step = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../Body/EnemySprite:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3, 0.400122, 0.5),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [0, 1, 2, 3, 2, 1]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("AnimationEnemy:speed_scale")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.6),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [0.7, 0.7]
+}
+
+[sub_resource type="Animation" id="Animation_ipaxs"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../Body/EnemySprite:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [0]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("AnimationEnemy:speed_scale")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [0.7]
+}
+
+[sub_resource type="Animation" id="Animation_fwn0s"]
+resource_name = "RUN"
+length = 0.6
+step = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../Body/EnemySprite:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3, 0.4, 0.5),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [6, 7, 8, 9, 10, 11]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_fwn0s"]
+_data = {
+&"IDLE": SubResource("Animation_pqdc7"),
+&"RESET": SubResource("Animation_ipaxs"),
+&"RUN": SubResource("Animation_fwn0s")
+}
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_vblni"]
+radius = 7.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_5gljc"]
+radius = 6.0
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_paq7w"]
 radius = 178.003
@@ -27,6 +109,7 @@ z_as_relative = false
 y_sort_enabled = true
 collision_layer = 4
 collision_mask = 7
+motion_mode = 1
 platform_on_leave = 2
 platform_floor_layers = 4294901760
 script = ExtResource("1_paq7w")
@@ -34,9 +117,35 @@ move_speed = 30.0
 dash_speed = 150.0
 dash_duration = 0.3
 
-[node name="Navigation" type="NavigationAgent2D" parent="."]
-target_desired_distance = 2.0
-navigation_layers = 3
+[node name="Collision" type="CollisionShape2D" parent="."]
+visible = false
+z_as_relative = false
+y_sort_enabled = true
+position = Vector2(0, 1)
+rotation = 1.5708
+shape = SubResource("CapsuleShape2D_paq7w")
+
+[node name="Body" type="Node2D" parent="."]
+
+[node name="EnemySprite" type="Sprite2D" parent="Body"]
+z_as_relative = false
+y_sort_enabled = true
+texture_filter = 1
+position = Vector2(0, -7)
+texture = ExtResource("2_paq7w")
+hframes = 6
+vframes = 2
+
+[node name="Shadow" type="Sprite2D" parent="Body/EnemySprite"]
+z_index = -1
+texture_filter = 1
+position = Vector2(0, 8)
+texture = ExtResource("4_pqdc7")
+
+[node name="Tools" type="Node2D" parent="."]
+
+[node name="Navigation" type="NavigationAgent2D" parent="Tools"]
+path_desired_distance = 0.1
 path_postprocessing = 1
 avoidance_enabled = true
 radius = 8.0
@@ -45,71 +154,68 @@ max_speed = 50.0
 avoidance_layers = 3
 avoidance_mask = 3
 
-[node name="Body" type="Node2D" parent="."]
+[node name="Health" parent="Tools" instance=ExtResource("1_aiwxb")]
+max_health = 50
 
-[node name="Sprite" type="Sprite2D" parent="Body"]
+[node name="Animations" type="Node2D" parent="."]
+
+[node name="AnimationEnemy" type="AnimationPlayer" parent="Animations"]
+libraries = {
+&"": SubResource("AnimationLibrary_fwn0s")
+}
+speed_scale = 0.7
+
+[node name="HitFlashAnimation" type="AnimationPlayer" parent="Animations"]
+
+[node name="Areas" type="Node2D" parent="."]
+
+[node name="HitBox" type="Area2D" parent="Areas"]
+visible = false
+collision_layer = 0
+collision_mask = 0
+script = ExtResource("4_f4si1")
+player_knockback = 120
+metadata/_custom_type_script = "uid://c26g0h8geemc0"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Areas/HitBox"]
+shape = SubResource("CircleShape2D_vblni")
+
+[node name="HurtBox" type="Area2D" parent="Areas"]
+visible = false
 z_as_relative = false
 y_sort_enabled = true
-texture_filter = 1
 position = Vector2(0, -7)
-texture = ExtResource("2_paq7w")
-
-[node name="HurtBox" type="Area2D" parent="Body/Sprite"]
-z_as_relative = false
-y_sort_enabled = true
 script = ExtResource("3_f4si1")
 metadata/_custom_type_script = "uid://b3pqwbslmkwbk"
 
-[node name="Collision" type="CollisionShape2D" parent="Body/Sprite/HurtBox"]
+[node name="Collision" type="CollisionShape2D" parent="Areas/HurtBox"]
 z_as_relative = false
 y_sort_enabled = true
 position = Vector2(0, 7)
 shape = SubResource("CircleShape2D_5gljc")
 
-[node name="Attack" type="Node2D" parent="Body"]
-
-[node name="HitBox" type="Area2D" parent="Body/Attack"]
-collision_layer = 0
-collision_mask = 0
-script = ExtResource("4_f4si1")
-player_knockback = 70
-metadata/_custom_type_script = "uid://c26g0h8geemc0"
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Body/Attack/HitBox"]
-shape = SubResource("CircleShape2D_vblni")
-
-[node name="Health" parent="Body" instance=ExtResource("1_aiwxb")]
-z_as_relative = false
-y_sort_enabled = true
-max_health = 50
-
-[node name="Collision" type="CollisionShape2D" parent="."]
-z_as_relative = false
-y_sort_enabled = true
-position = Vector2(0, 1)
-rotation = 1.5708
-shape = SubResource("CapsuleShape2D_paq7w")
-
-[node name="ChaseArea" type="Area2D" parent="."]
+[node name="ChaseArea" type="Area2D" parent="Areas"]
+visible = false
 z_as_relative = false
 y_sort_enabled = true
 collision_layer = 2
 collision_mask = 2
 
-[node name="Collision" type="CollisionShape2D" parent="ChaseArea"]
+[node name="Collision" type="CollisionShape2D" parent="Areas/ChaseArea"]
 z_as_relative = false
 y_sort_enabled = true
 shape = SubResource("CircleShape2D_paq7w")
 
-[node name="AttackArea" type="Area2D" parent="."]
+[node name="AttackArea" type="Area2D" parent="Areas"]
+visible = false
 collision_layer = 2
 collision_mask = 2
 
-[node name="Collision" type="CollisionShape2D" parent="AttackArea"]
+[node name="Collision" type="CollisionShape2D" parent="Areas/AttackArea"]
 shape = SubResource("CircleShape2D_f4si1")
 
-[connection signal="velocity_computed" from="Navigation" to="." method="_on_navigation_velocity_computed"]
-[connection signal="area_entered" from="ChaseArea" to="." method="_on_chase_area_entered"]
-[connection signal="area_exited" from="ChaseArea" to="." method="_on_chase_area_exited"]
-[connection signal="area_entered" from="AttackArea" to="." method="_on_attack_area_entered"]
-[connection signal="area_exited" from="AttackArea" to="." method="_on_attack_area_exited"]
+[connection signal="velocity_computed" from="Tools/Navigation" to="." method="_on_navigation_velocity_computed"]
+[connection signal="area_entered" from="Areas/ChaseArea" to="." method="_on_chase_area_entered"]
+[connection signal="area_exited" from="Areas/ChaseArea" to="." method="_on_chase_area_exited"]
+[connection signal="area_entered" from="Areas/AttackArea" to="." method="_on_attack_area_entered"]
+[connection signal="area_exited" from="Areas/AttackArea" to="." method="_on_attack_area_exited"]

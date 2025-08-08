@@ -162,7 +162,7 @@ hframes = 3
 [node name="HitBox" type="Area2D" parent="Attack1/AttackSprite"]
 position = Vector2(19, 0)
 script = ExtResource("5_c0q5x")
-player_knockback = 50
+player_knockback = 160
 combo_window_time = 0.7
 attack_interval_time = 0.3
 metadata/_custom_type_script = "uid://c26g0h8geemc0"
@@ -206,7 +206,7 @@ hframes = 3
 [node name="HitBox" type="Area2D" parent="Attack2/AttackSprite"]
 position = Vector2(19, 0)
 script = ExtResource("5_c0q5x")
-player_knockback = 50
+player_knockback = 160
 combo_window_time = 0.7
 attack_interval_time = 0.3
 metadata/_custom_type_script = "uid://c26g0h8geemc0"

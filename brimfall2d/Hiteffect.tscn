@@ -1,0 +1,5 @@
+[gd_scene format=3 uid="uid://b7if7menbgujd"]
+
+[node name="CPUParticles2D" type="CPUParticles2D"]
+emitting = false
+gravity = Vector2(222.875, 0)

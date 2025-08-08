@@ -1,8 +1,9 @@
-[gd_scene load_steps=22 format=3 uid="uid://bug2v2r7cvrjy"]
+[gd_scene load_steps=23 format=3 uid="uid://bug2v2r7cvrjy"]
 
 [ext_resource type="Script" uid="uid://bicvtqr30a8d6" path="res://Script/base_character.gd" id="1_foqlb"]
 [ext_resource type="Texture2D" uid="uid://buyud6oouchic" path="res://Assets/MageAnimation.png" id="2_5qvmk"]
 [ext_resource type="Shader" uid="uid://cdgo7va78jeil" path="res://Shaders/FlashWhite.gdshader" id="2_g1gcw"]
+[ext_resource type="Texture2D" uid="uid://bq651eg18h6d3" path="res://Assets/Shadow.png" id="2_n024f"]
 [ext_resource type="Script" uid="uid://b3pqwbslmkwbk" path="res://Script/HurtBox.gd" id="3_hfjlv"]
 [ext_resource type="PackedScene" uid="uid://d3gefvr6q5463" path="res://Scenes/Weapons/Sword.tscn" id="3_sv1ig"]
 [ext_resource type="PackedScene" uid="uid://bearj4oojp58g" path="res://Scenes/health.tscn" id="4_5qvmk"]
@@ -136,54 +137,6 @@ tracks/1/keys = {
 
 [sub_resource type="Animation" id="Animation_hfjlv"]
 length = 0.001
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("Body/BodyTexture:frame")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [0]
-}
-tracks/1/type = "value"
-tracks/1/imported = false
-tracks/1/enabled = true
-tracks/1/path = NodePath("AnimationPlayer:speed_scale")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
-tracks/1/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [1.0]
-}
-tracks/2/type = "value"
-tracks/2/imported = false
-tracks/2/enabled = true
-tracks/2/path = NodePath("Body/BodyTexture:frame_coords")
-tracks/2/interp = 1
-tracks/2/loop_wrap = true
-tracks/2/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [Vector2i(0, 0)]
-}
-tracks/3/type = "value"
-tracks/3/imported = false
-tracks/3/enabled = true
-tracks/3/path = NodePath("CollisionShape2D:disabled")
-tracks/3/interp = 1
-tracks/3/loop_wrap = true
-tracks/3/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [true]
-}
 
 [sub_resource type="Animation" id="Animation_n024f"]
 resource_name = "ROLL"
@@ -224,18 +177,6 @@ tracks/2/keys = {
 "transitions": PackedFloat32Array(1, 1, 1, 1),
 "update": 1,
 "values": [16, 17, 18, 19]
-}
-tracks/3/type = "value"
-tracks/3/imported = false
-tracks/3/enabled = true
-tracks/3/path = NodePath("CollisionShape2D:disabled")
-tracks/3/interp = 1
-tracks/3/loop_wrap = true
-tracks/3/keys = {
-"times": PackedFloat32Array(0, 0.582421),
-"transitions": PackedFloat32Array(1, 1),
-"update": 1,
-"values": [true, false]
 }
 
 [sub_resource type="Animation" id="Animation_g1gcw"]
@@ -354,12 +295,14 @@ collision_mask = 5
 platform_on_leave = 2
 platform_floor_layers = 4294901760
 script = ExtResource("1_foqlb")
+recoil_friction = 250.0
+walk_speed = 70.0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+visible = false
 position = Vector2(0, 3)
 rotation = 1.5708
 shape = SubResource("CapsuleShape2D_5qvmk")
-disabled = true
 
 [node name="Body" type="Node2D" parent="."]
 z_as_relative = false
@@ -376,6 +319,7 @@ hframes = 4
 vframes = 7
 
 [node name="HurtBox#LINKLIFE" type="Area2D" parent="Body/BodyTexture"]
+visible = false
 position = Vector2(0, 5)
 script = ExtResource("3_hfjlv")
 metadata/_custom_type_script = "uid://b3pqwbslmkwbk"
@@ -383,10 +327,15 @@ metadata/_custom_type_script = "uid://b3pqwbslmkwbk"
 [node name="Collision" type="CollisionShape2D" parent="Body/BodyTexture/HurtBox#LINKLIFE"]
 shape = SubResource("CircleShape2D_g1gcw")
 
+[node name="Shadow" type="Sprite2D" parent="Body/BodyTexture"]
+z_index = -1
+texture_filter = 1
+position = Vector2(0, 8)
+texture = ExtResource("2_n024f")
+
 [node name="Weapon" parent="Body" instance=ExtResource("3_sv1ig")]
 
 [node name="Health" parent="." instance=ExtResource("4_5qvmk")]
-position = Vector2(0, 4)
 max_health = 500
 
 [node name="Camera2D" type="Camera2D" parent="."]
@@ -396,6 +345,8 @@ zoom = Vector2(4, 4)
 libraries = {
 &"": SubResource("AnimationLibrary_g1gcw")
 }
+autoplay = "RESET"
+speed_scale = 0.5
 
 [node name="HitFlashAnimation" type="AnimationPlayer" parent="."]
 libraries = {

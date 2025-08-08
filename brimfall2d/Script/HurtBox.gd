@@ -25,6 +25,7 @@ func _on_area_entered(hitbox: HitBox) -> void:
 
 	if defender_body.has_method("take_damage"):
 		defender_body.take_damage(hitbox.damage)
+		#Global.display_number(hitbox.damage, global_position)
 		print("HurtBox: Damage taken from an external source.")
 
 	if defender_body.has_method("apply_knockback"):

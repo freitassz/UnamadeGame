@@ -1,12 +1,9 @@
 extends CharacterBody2D
 
-@onready var navigation = $Navigation as NavigationAgent2D # Cast to NavigationAgent2D for clarity
-@onready var health = $Body/Health
-@onready var chase_area = $ChaseArea
-@onready var attack_area = $AttackArea # Assuming you have an AttackArea2D node
-
-# Add an @onready reference to your AttackComponent
-@onready var attack_component = $AttackComponent # Assuming you have an AttackComponent node
+@onready var navigation = $Tools/Navigation as NavigationAgent2D # Cast to NavigationAgent2D for clarity
+@onready var health = $Tools/Health
+@onready var chase_area = $Areas/ChaseArea
+@onready var attack_area = $Areas/AttackArea # Assuming you have an AttackArea2D node
 
 #==========Export==========#
 @export var move_speed: float = 50
@@ -57,10 +54,6 @@ func _ready() -> void:
 		push_error("The 'navigation' node is not a NavigationAgent2D. Please ensure it is correctly set up.")
 		return
 	
-	# Ensure the attack_component is correctly assigned
-	if not attack_component:
-		push_error("The 'attack_component' node is not assigned. Please ensure it is correctly set up.")
-		return
 		
 	call_deferred("seeker_setup")
 	chase_area.connect("body_entered", Callable(self, "_on_chase_area_entered"))
@@ -73,7 +66,6 @@ func _ready() -> void:
 	navigation.velocity_computed.connect(Callable(self, "_on_navigation_velocity_computed"))
 
 func _physics_process(delta: float) -> void:
-	# Atualiza a visibilidade em cada frame de física
 	update_vision()
 
 	match current_enemy_state:

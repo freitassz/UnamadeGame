@@ -183,6 +183,7 @@ func _start_roll(input_dir: Vector2) -> void:
 	is_rolling = true
 	roll_timer = roll_duration
 	roll_cooldown_timer = roll_cooldown
+	collision_mask &= ~4
 
 	is_invincible = true
 	invincibility_timer = invincibility_time
@@ -197,6 +198,7 @@ func _handle_roll(delta: float) -> void:
 	roll_timer -= delta
 	if roll_timer <= 0.0:
 		is_rolling = false
+		collision_mask |= 4
 		var input_direction = Input.get_vector("move_left", "move_right", "move_up", "move_down")
 		if input_direction.length() > 0:
 			_set_movement_state(MovementState.WALKING)
@@ -207,12 +209,17 @@ func _handle_roll(delta: float) -> void:
 
 # NEW: Unified function for knockback
 func apply_knockback(force: float, hit_position: Vector2) -> void:
+	# Se o jogador estiver rolando, ele não pode ser afetado pelo coice.
 	if is_rolling:
 		return
 
+	# NOVO: Se o jogador estiver atacando, pare o ataque antes de aplicar o coice.
+	if is_attacking:
+		_end_attack_lunge()
+
 	is_recoiling = true
 	var knockback_direction = (global_position - hit_position).normalized()
-	recoil_vector = knockback_direction * (force * player_recoil_strength)
+	recoil_vector = knockback_direction * force
 	_set_movement_state(MovementState.RECOILING)
 
 # This function will now be called when Combo1/2 emit their "recoil" signal
@@ -221,14 +228,13 @@ func _on_hitbox_recoil_signal(player_knockback_value: float, enemy_knockback_val
 	apply_knockback(player_knockback_value, hit_position)
 
 func _handle_recoil(delta: float) -> void:
-	velocity = recoil_vector
-	move_and_slide()
-
-	recoil_vector = recoil_vector.move_toward(Vector2.ZERO, recoil_friction * delta)
-
+	# O jogador só pode sair do estado de RECOILING quando o recoil_vector for quase zero.
+	# Isso impede que o jogador recupere o controle bruscamente.
 	if recoil_vector.length() < min_recoil_speed_threshold:
 		is_recoiling = false
 		recoil_vector = Vector2.ZERO
+		
+		# Transição suave de volta para o estado normal (IDLE ou WALKING).
 		var input_direction = Input.get_vector("move_left", "move_right", "move_up", "move_down")
 		if input_direction.length() > 0:
 			_set_movement_state(MovementState.WALKING)
@@ -236,6 +242,15 @@ func _handle_recoil(delta: float) -> void:
 		else:
 			_set_movement_state(MovementState.IDLE)
 			velocity = Vector2.ZERO
+		return # Sai da função para não executar o resto do código.
+
+	# Enquanto o recoil estiver ativo, move_and_slide() empurra o jogador.
+	velocity = recoil_vector
+	move_and_slide()
+
+	# Aplica uma desaceleração controlada.
+	# O `recoil_friction` define a velocidade com que o recoil desacelera.
+	recoil_vector = recoil_vector.move_toward(Vector2.ZERO, recoil_friction * delta)
 
 func _is_attacking(weapon_push: float, weapon_dir: Vector2):
 	if is_rolling or is_recoiling:

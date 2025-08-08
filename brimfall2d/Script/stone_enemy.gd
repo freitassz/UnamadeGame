@@ -3,13 +3,14 @@ extends CharacterBody2D
 signal attack1(player_dir: Vector2)
 signal attack2(player_dir: Vector2)
 
-@onready var navigation = $Navigation as NavigationAgent2D
-@onready var health = $Body/Health
-@onready var chase_area = $ChaseArea
-@onready var attack_area = $AttackArea
+@onready var navigation = $Tools/Navigation as NavigationAgent2D
+@onready var health = $Tools/Health
+@onready var chase_area = $Areas/ChaseArea
+@onready var attack_area = $Areas/AttackArea
 @onready var enemy_sprite = $Body/EnemySprite
-
 @onready var attack_component = $Body/EnemyWeapon
+@onready var animation_enemy = $Animations/AnimationEnemy
+@onready var hit_animation = $Animations/HitFlashAnimation
 
 #==========Export==========#
 @export var move_speed: float = 50
@@ -63,6 +64,7 @@ var dash_move_direction: Vector2 = Vector2.ZERO
 
 #====reference====#
 var player_dir = null
+var animation_dir: int = 0 # 0 for front/down, 1 for back/up
 
 func _ready() -> void:
 
@@ -88,18 +90,10 @@ func _ready() -> void:
 	navigation.velocity_computed.connect(Callable(self, "_on_navigation_velocity_computed"))
 
 func _physics_process(delta: float) -> void:
-# Flip the sprite based on the target's position
-	if target:
-		# Calculate the direction vector from the enemy to the target
-		var dir_to_target = (target.global_position - global_position).x
-	
-		# Flip the sprite based on the horizontal direction to the target
-		if dir_to_target > 0: # Target is to the right
-			enemy_sprite.flip_h = true
-		elif dir_to_target < 0: # Target is to the left
-			enemy_sprite.flip_h = false
-
 	update_vision()
+	
+	# Update animation state at the start of the physics process
+	_update_enemy_animation()
 
 	match current_enemy_state:
 		EnemyState.IDLE:
@@ -110,8 +104,7 @@ func _physics_process(delta: float) -> void:
 			current_enemy_state != EnemyState.KNOCKBACK and \
 			current_enemy_state != EnemyState.POST_ATTACK_COOLDOWN and \
 			current_enemy_state != EnemyState.DASHING_ATTACK:
-				current_enemy_state = EnemyState.CHASING
-				print("Player visto e dentro da área. Inimigo em CHASING.")
+				_set_enemy_state(EnemyState.CHASING)
 
 		EnemyState.CHASING:
 			handle_chasing_state(delta) # Call the new function for CHASING state logic
@@ -123,7 +116,7 @@ func _physics_process(delta: float) -> void:
 				perform_attack()
 
 			if not target: # Se o alvo sumir completamente, volta para IDLE
-				current_enemy_state = EnemyState.IDLE
+				_set_enemy_state(EnemyState.IDLE)
 				can_attack = true
 				print("Alvo perdido durante o ataque. Inimigo volta para IDLE.")
 
@@ -136,17 +129,17 @@ func _physics_process(delta: float) -> void:
 				# Após o cooldown, reavalia a situação para decidir o próximo estado
 				if target and attack_area.overlaps_body(target):
 					# Se o player ainda estiver na área de ataque, volta a atacar
-					current_enemy_state = EnemyState.ATTACKING
+					_set_enemy_state(EnemyState.ATTACKING)
 					current_attack_delay = randf_range(attack_delay_min, attack_delay_max)
 					can_attack = false # Impede ataques imediatos novamente
 					print("Cooldown terminado. Player ainda na área de ataque. Inimigo volta para ATTACKING.")
 				elif target and chase_area.overlaps_body(target):
 					# Se o player estiver na área de perseguição (mas não de ataque), volta a perseguir
-					current_enemy_state = EnemyState.CHASING
+					_set_enemy_state(EnemyState.CHASING)
 					print("Cooldown terminado. Player fora da área de ataque, mas na de perseguição. Inimigo volta para CHASING.")
 				else:
 					# Se o player estiver fora de ambas as áreas ou for null, volta para IDLE
-					current_enemy_state = EnemyState.IDLE
+					_set_enemy_state(EnemyState.IDLE)
 					print("Cooldown terminado. Inimigo volta para IDLE.")
 
 		EnemyState.KNOCKBACK:
@@ -161,28 +154,28 @@ func _physics_process(delta: float) -> void:
 					# Agora o inimigo volta a caçar se o player ESTIVER na área DE PERSEGUIÇÃO.
 					# A visão só é verificada para INICIAR a caçada, não para MANTÊ-LA.
 					if target and attack_area.overlaps_body(target) and can_attack:
-						current_enemy_state = EnemyState.ATTACKING
+						_set_enemy_state(EnemyState.ATTACKING)
 						current_attack_delay = randf_range(attack_delay_min, attack_delay_max)
 						can_attack = false # Impede ataques imediatos
 						print("Knockback terminou. Player dentro da área de ataque. Inimigo em ATTACKING.")
 					elif target and chase_area.overlaps_body(target):
-						current_enemy_state = EnemyState.CHASING
+						_set_enemy_state(EnemyState.CHASING)
 						print("Knockback terminou. Player na área de perseguição. Inimigo em CHASING.")
 					else:
-						current_enemy_state = EnemyState.IDLE
+						_set_enemy_state(EnemyState.IDLE)
 						print("Knockback terminou. Inimigo em IDLE.")
 			else:
 				# Se o knockback_vector já for ZERO e ainda estamos no estado KNOCKBACK
 				if target and attack_area.overlaps_body(target) and can_attack:
-					current_enemy_state = EnemyState.ATTACKING
+					_set_enemy_state(EnemyState.ATTACKING)
 					current_attack_delay = randf_range(attack_delay_min, attack_delay_max)
 					can_attack = false # Impede ataques imediatos
 					print("Knockback já zero. Player dentro da área de ataque. Inimigo em ATTACKING.")
 				elif target and chase_area.overlaps_body(target):
-					current_enemy_state = EnemyState.CHASING
+					_set_enemy_state(EnemyState.CHASING)
 					print("Knockback já zero. Player na área de perseguição. Inimigo em CHASING.")
 				else:
-					current_enemy_state = EnemyState.IDLE
+					_set_enemy_state(EnemyState.IDLE)
 					print("Knockback já zero. Inimigo em IDLE.")
 		EnemyState.DASHING_ATTACK:
 			# Lógica do dash de ataque
@@ -193,23 +186,85 @@ func _physics_process(delta: float) -> void:
 				# Após o dash, decide o próximo estado.
 				# Priorize o ataque se o player estiver na área de ataque e puder atacar.
 				if target and attack_area.overlaps_body(target) and can_attack:
-					current_enemy_state = EnemyState.ATTACKING
+					_set_enemy_state(EnemyState.ATTACKING)
 					current_attack_delay = randf_range(attack_delay_min, attack_delay_max)
 					can_attack = false
 					print("Dash de ataque terminado. Player na área de ataque. Inimigo em ATTACKING.")
 				elif target and chase_area.overlaps_body(target):
-					current_enemy_state = EnemyState.CHASING
+					_set_enemy_state(EnemyState.CHASING)
 					print("Dash de ataque terminado. Player na área de perseguição. Inimigo em CHASING.")
 				else:
-					current_enemy_state = EnemyState.IDLE
+					_set_enemy_state(EnemyState.IDLE)
 					print("Dash de ataque terminado. Inimigo em IDLE.")
 	move_and_slide() # Always call move_and_slide at the end of _physics_process
 
+func _set_enemy_state(new_state: EnemyState) -> void:
+	if current_enemy_state == new_state:
+		return
+	
+	current_enemy_state = new_state
+	_update_enemy_animation()
+	print("New state: ", new_state)
+
+func _update_enemy_animation() -> void:
+	if not animation_enemy:
+		return
+		
+	# Flip the sprite based on the target's position
+	if target:
+		var dir_to_target = (target.global_position - global_position)
+		# Flip the sprite based on the horizontal direction to the target
+		if dir_to_target.x > 0: # Target is to the right
+			enemy_sprite.flip_h = true
+		elif dir_to_target.x < 0: # Target is to the left
+			enemy_sprite.flip_h = false
+		
+		# Set animation direction based on vertical position
+		if dir_to_target.y < 0:
+			animation_dir = 1 # Back/up
+		else:
+			animation_dir = 0 # Front/down
+
+	match current_enemy_state:
+		EnemyState.IDLE:
+			if animation_dir == 1:
+				if animation_enemy.current_animation != "IDLE_BACK":
+					animation_enemy.play("IDLE_BACK")
+			else:
+				if animation_enemy.current_animation != "IDLE":
+					animation_enemy.play("IDLE")
+		EnemyState.CHASING:
+			if animation_dir == 1:
+				if animation_enemy.current_animation != "RUN_BACK":
+					animation_enemy.play("RUN_BACK")
+			else:
+				if animation_enemy.current_animation != "RUN":
+					animation_enemy.play("RUN")
+		EnemyState.ATTACKING:
+			# You will need to create separate attack animations for front and back
+			# For now, let's just use the front attack and flip the sprite
+			if animation_enemy.current_animation != "attack":
+				animation_enemy.play("attack")
+		EnemyState.KNOCKBACK:
+			if animation_enemy.current_animation != "IDLE":
+				animation_enemy.play("IDLE")
+		EnemyState.DASHING_ATTACK:
+			if animation_enemy.current_animation != "run":
+				animation_enemy.play("run")
+		EnemyState.POST_ATTACK_COOLDOWN:
+			# You can play the idle animation here
+			if animation_dir == 1:
+				if animation_enemy.current_animation != "IDLE_BACK":
+					animation_enemy.play("IDLE_BACK")
+			else:
+				if animation_enemy.current_animation != "IDLE":
+					animation_enemy.play("IDLE")
+	
 func handle_chasing_state(delta: float) -> void:
 	# No estado CHASING, o inimigo só para de caçar se o player sair da área de perseguição.
 	# Ele continua perseguindo mesmo que perca a linha de visão, desde que o player esteja na área.
 	if target and not chase_area.overlaps_body(target):
-		current_enemy_state = EnemyState.IDLE
+		_set_enemy_state(EnemyState.IDLE)
 		velocity = Vector2.ZERO
 		is_dashing_move = false # Reset dash state
 		print("Player saiu da área de perseguição. Inimigo em IDLE.")
@@ -217,7 +272,7 @@ func handle_chasing_state(delta: float) -> void:
 
 	# Se o player estiver na área de ataque E puder atacar, transiciona para o estado ATTACKING
 	if target and attack_area.overlaps_body(target) and can_attack:
-		current_enemy_state = EnemyState.ATTACKING
+		_set_enemy_state(EnemyState.ATTACKING)
 		current_attack_delay = randf_range(attack_delay_min, attack_delay_max)
 		is_dashing_move = false # Reset dash state
 		# can_attack = false é definido em _on_attack_area_entered agora para garantir o comprometimento
@@ -295,7 +350,7 @@ func _on_chase_area_exited(body: Node2D) -> void:
 func _on_attack_area_entered(body: Node2D) -> void:
 	if body is CharacterBody2D and body.name == "Player":
 		if current_enemy_state == EnemyState.CHASING and can_attack:
-			current_enemy_state = EnemyState.ATTACKING
+			_set_enemy_state(EnemyState.ATTACKING)
 			current_attack_delay = randf_range(attack_delay_min, attack_delay_max)
 			can_attack = false # Commit to attacking
 			print("Player entered attack area. Transitioning to ATTACKING.")
@@ -306,11 +361,11 @@ func _on_attack_area_exited(body: Node2D) -> void:
 		# the enemy should transition to CHASING (if still in chase area) or IDLE.
 		if current_enemy_state == EnemyState.ATTACKING or current_enemy_state == EnemyState.POST_ATTACK_COOLDOWN:
 			if target and chase_area.overlaps_body(target):
-				current_enemy_state = EnemyState.CHASING
+				_set_enemy_state(EnemyState.CHASING)
 				can_attack = true # Allow re-evaluation for attack later
 				print("Player exited attack area during attack/cooldown. Transitioning to CHASING.")
 			else:
-				current_enemy_state = EnemyState.IDLE
+				_set_enemy_state(EnemyState.IDLE)
 				can_attack = true # Allow re-evaluation for attack later
 				print("Player exited attack area. No longer in chase area. Transitioning to IDLE.")
 
@@ -326,23 +381,23 @@ func perform_attack() -> void:
 			print("Performing attack 2.")
 
 		# After performing an attack, go into POST_ATTACK_COOLDOWN
-		current_enemy_state = EnemyState.POST_ATTACK_COOLDOWN
+		_set_enemy_state(EnemyState.POST_ATTACK_COOLDOWN)
 		current_post_attack_cooldown = randf_range(post_attack_cooldown_min, post_attack_cooldown_max)
 		print("Attack performed. Entering POST_ATTACK_COOLDOWN.")
 	else:
 		# If somehow perform_attack is called but target is not in range,
 		# transition back to chasing or idle.
 		if target and chase_area.overlaps_body(target):
-			current_enemy_state = EnemyState.CHASING
+			_set_enemy_state(EnemyState.CHASING)
 			can_attack = true # Allow new attack attempt
 			print("No target in range for attack. Back to CHASING.")
 		else:
-			current_enemy_state = EnemyState.IDLE
+			_set_enemy_state(EnemyState.IDLE)
 			can_attack = true
 			print("No target in range for attack. Back to IDLE.")
 
 func apply_knockback(force: float, hit_position: Vector2) -> void:
-	current_enemy_state = EnemyState.KNOCKBACK
+	_set_enemy_state(EnemyState.KNOCKBACK)
 	var knockback_direction = (global_position - hit_position).normalized()
 	var final_knockback_force = force / knockback_resistance
 	knockback_vector = knockback_direction * final_knockback_force
@@ -352,6 +407,9 @@ func apply_knockback(force: float, hit_position: Vector2) -> void:
 func _on_died() -> void:
 	print("Enemy died.")
 	queue_free()
+
+func take_damage(amount: int) -> void:
+	health.take_damage(amount)
 
 func update_vision() -> void:
 	if not target:
@@ -376,5 +434,4 @@ func update_vision() -> void:
 			can_see_target = false
 
 func _knockback_effect():
-	$HitFlashAnimation.play("hit")
-	
+	hit_animation.play("hit")
