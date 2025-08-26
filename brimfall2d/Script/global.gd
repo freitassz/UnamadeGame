@@ -1,16 +1,5 @@
 extends Node
 
-var is_paused = false
-
-func toggle_pause():
-	is_paused = not is_paused
-	if is_paused:
-		Engine.time_scale = 0.0
-		print("Jogo pausado")
-	else:
-		Engine.time_scale = 1.0
-		print("Jogo despausado")
-
 func display_number(value: int, position: Vector2):
 	var number = Label.new()
 	number.global_position = position

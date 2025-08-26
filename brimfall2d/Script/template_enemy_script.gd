@@ -57,8 +57,10 @@ func _ready() -> void:
 	attack_area.connect("body_entered", Callable(self, "_on_attack_area_entered"))
 	attack_area.connect("body_exited", Callable(self, "_on_attack_area_exited"))
 	
-	
-
+	# Agora o NavigationAgent2D e o target são configurados no componente de movimento
+	movement_component.navigation_agent = navigation
+	movement_component.parent_character = self
+	movement_component.target = target
 
 func _physics_process(delta: float) -> void:
 	update_vision()

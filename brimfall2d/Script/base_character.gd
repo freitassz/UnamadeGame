@@ -7,9 +7,6 @@ extends CharacterBody2D
 @onready var character_sprite = $AnimatedSprite2D
 @onready var player_sprite = $Body/BodyTexture
 @onready var health = $Health
-@onready var dirt_step: AudioStreamPlayer = $"Dirt_Step"
-
-
 
 @export_category("Rolling")
 @export var roll_speed: float = 250.0
@@ -95,7 +92,7 @@ func _physics_process(delta: float) -> void:
 	else:
 		var input_direction = Input.get_vector("move_left", "move_right", "move_up", "move_down")
 
-		if Input.is_action_just_pressed("roll") and roll_cooldown_timer <= 0.0 && !Global.is_paused:
+		if Input.is_action_just_pressed("roll") and roll_cooldown_timer <= 0.0:
 			_start_roll(input_direction)
 		else:
 			var new_state: MovementState
@@ -119,9 +116,6 @@ func _set_movement_state(new_state: MovementState) -> void:
 
 	current_movement_state = new_state
 	_update_animation()
-
-var footstep_delay = 0.18 # Atraso desejado em segundos
-var footstep_timer = 0.0 # Contador que irá diminuir
 
 func _update_animation() -> void:
 	if not animation_player:
@@ -158,15 +152,8 @@ func _update_walk_animation(input_direction: Vector2) -> void: # Recebe input_di
 		player_sprite.flip_h = true
 	elif input_direction.x < 0: # Movendo para a esquerda
 		player_sprite.flip_h = false
+	# --- Fim Lógica de Virar o Sprite Horizontalmente ---
 
-	if input_direction.length() > 0:
-		footstep_timer -= get_process_delta_time()
-		if footstep_timer <= 0:
-			dirt_step.pitch_scale = randf_range(0.9, 1.1)
-			dirt_step.play()
-			footstep_timer = footstep_delay
-	# --- Fim Lógica de som ---
-	
 	# --- Lógica para Atualizar Animação de Caminhada Constantemente e definir animation_dir ---
 	if input_direction.y < 0: # Movendo para cima (ex: cima-esquerda, cima-direita)
 		if animation_player.current_animation != "WALK_BACK":
@@ -237,7 +224,7 @@ func apply_knockback(force: float, hit_position: Vector2) -> void:
 
 # This function will now be called when Combo1/2 emit their "recoil" signal
 func _on_hitbox_recoil_signal(player_knockback_value: float, enemy_knockback_value: float, hit_position: Vector2):
-
+	# Assuming 'player_knockback_value' is the force to apply to the player
 	apply_knockback(player_knockback_value, hit_position)
 
 func _handle_recoil(delta: float) -> void:

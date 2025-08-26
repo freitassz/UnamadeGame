@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://d3gefvr6q5463"]
+[gd_scene load_steps=14 format=3 uid="uid://d3gefvr6q5463"]
 
 [ext_resource type="Script" uid="uid://bcq6hc6oh5byp" path="res://Script/weapon.gd" id="1_a54vs"]
 [ext_resource type="Texture2D" uid="uid://dxiwea1hmfu2n" path="res://Assets/Sword.png" id="2_10xpx"]
@@ -6,7 +6,6 @@
 [ext_resource type="Script" uid="uid://c26g0h8geemc0" path="res://Script/HitBox.gd" id="3_10xpx"]
 [ext_resource type="Texture2D" uid="uid://c4toc27iav6sn" path="res://Assets/Foward_atack-Sheet-Sheet.png" id="4_y2h4v"]
 [ext_resource type="Texture2D" uid="uid://cn6a6qhcglr5x" path="res://Assets/Hands.png" id="5_10xpx"]
-[ext_resource type="AudioStream" uid="uid://c210qcntw2lnb" path="res://Shaders/SwordeEffect (1).wav" id="7_y2h4v"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_l036s"]
 radius = 16.9014
@@ -172,10 +171,11 @@ texture = ExtResource("2_akyv1")
 hframes = 3
 
 [node name="HitBox" type="Area2D" parent="Combos/Combo1/Sprite2D"]
-position = Vector2(20, 0)
+position = Vector2(19, 0)
 script = ExtResource("3_10xpx")
 knockback = 40
-player_knockback = 200
+player_knockback = 40
+weapon_push = 40.0
 combo_window_time = 0.9
 attack_interval_time = 0.4
 metadata/_custom_type_script = "uid://c26g0h8geemc0"
@@ -212,7 +212,7 @@ texture = ExtResource("4_y2h4v")
 hframes = 3
 
 [node name="HitBox" type="Area2D" parent="Combos/Combo2/Sprite2D"]
-position = Vector2(31, 0)
+position = Vector2(30, 0)
 script = ExtResource("3_10xpx")
 knockback = 60
 player_knockback = 80
@@ -233,7 +233,3 @@ libraries = {
 &"": SubResource("AnimationLibrary_mql6x")
 }
 speed_scale = 1.5
-
-[node name="Slash_Audio" type="AudioStreamPlayer" parent="."]
-stream = ExtResource("7_y2h4v")
-volume_db = -25.0

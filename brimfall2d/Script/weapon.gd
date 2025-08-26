@@ -5,10 +5,8 @@ signal attack(weapon_push: float, weapon_dir: Vector2)
 @onready var combos_node: Node2D = $Combos
 @onready var animation_player: AnimationPlayer = $AnimationPlayer
 @onready var player: CharacterBody2D = get_parent().get_parent() as CharacterBody2D
+
 @onready var weapon_dir: Vector2 # Esta variável armazenará a direção atual da arma
-@onready var slash_audio: AudioStreamPlayer = $Slash_Audio
-
-
 
 var is_attacking: bool = false
 var current_combo_index: int = -1 # Começa com -1 para indicar que nenhum combo está ativo
@@ -50,7 +48,7 @@ func _process(delta):
 	# A variável weapon_dir será atualizada logo antes do emit_signal em start_attack e next_combo.
 
 func _input(event):
-	if event.is_action_pressed("attack") && !Global.is_paused:
+	if event.is_action_pressed("attack"):
 		if not is_attacking and attack_cooldown_timer.time_left <= 0:
 			start_attack()
 		elif is_attacking and combo_timer.time_left > 0 and current_combo_index < combos_node.get_child_count() - 1 and attack_cooldown_timer.time_left <= 0:
@@ -75,8 +73,6 @@ func start_attack():
 	play_current_combo_animation()
 	combo_timer.start()
 	attack_cooldown_timer.start()
-	
-	
 
 func next_combo():
 	if current_combo_index >= 0 && current_combo_index < combos_node.get_child_count():
@@ -115,8 +111,6 @@ func play_current_combo_animation():
 		var combo_name = "Combo" + str(current_combo_index + 1)
 		if animation_player.has_animation(combo_name):
 			animation_player.play(combo_name)
-			slash_audio.pitch_scale = randf_range(0.9, 1.1)
-			slash_audio.play()
 		else:
 			print("Animação não encontrada para: ", combo_name)
 			finish_attack()

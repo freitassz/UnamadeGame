@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3 uid="uid://dnmlg3j6hke73"]
+[gd_scene load_steps=16 format=3 uid="uid://dnmlg3j6hke73"]
 
 [ext_resource type="Script" uid="uid://b4pay72a04vxs" path="res://Script/Dummy.gd" id="1_u0xdl"]
 [ext_resource type="Shader" uid="uid://cdgo7va78jeil" path="res://Shaders/FlashWhite.gdshader" id="2_nuje8"]
@@ -7,7 +7,6 @@
 [ext_resource type="PackedScene" uid="uid://bearj4oojp58g" path="res://Scenes/health.tscn" id="4_v1swa"]
 [ext_resource type="PackedScene" uid="uid://uegrn8t03hcr" path="res://Scenes/movement.tscn" id="5_1dccf"]
 [ext_resource type="Script" uid="uid://b3pqwbslmkwbk" path="res://Script/HurtBox.gd" id="7_o5cmx"]
-[ext_resource type="AudioStream" uid="uid://dqjcxdaupgsww" path="res://Shaders/Damage_sfx.wav" id="8_nuje8"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_tnpt3"]
 radius = 4.0
@@ -147,10 +146,6 @@ collision_mask = 2
 
 [node name="Collision" type="CollisionShape2D" parent="Areas/AttackArea"]
 shape = SubResource("CircleShape2D_krp6e")
-
-[node name="Damage_SFX" type="AudioStreamPlayer" parent="."]
-stream = ExtResource("8_nuje8")
-volume_db = -30.0
 
 [connection signal="velocity_computed" from="Tools/Navigation" to="." method="_on_navigation_velocity_computed"]
 [connection signal="area_entered" from="Areas/ChaseArea" to="." method="_on_chase_area_entered"]
