@@ -8,6 +8,7 @@ extends CharacterBody2D
 @onready var attack_component = $AttackComponent
 @onready var movement_component = $Tools/Movement as Node
 @onready var hit_animation = $Animations/HitFlashAnimation
+@onready var damage_sfx: AudioStreamPlayer = $Damage_SFX
 
 #==========Export==========#
 @export var target: CharacterBody2D = null
@@ -196,6 +197,8 @@ func update_vision() -> void:
 
 #==========Character_Things==========#
 func take_damage(amount: int) -> void:
+	damage_sfx.pitch_scale = randf_range(0.9, 1.1)
+	damage_sfx.play()
 	health.take_damage(amount)
 
 func _on_died():
@@ -212,7 +215,7 @@ func apply_knockback(force: float, hit_position: Vector2) -> void:
 	_knockback_effect()
 
 func _knockback_effect():
-		hit_animation.play("hit")
+	hit_animation.play("hit")
 
 #==========Attacks==========#
 func perform_attack() -> void:

@@ -112,7 +112,8 @@ avoidance_mask = 3
 [node name="Health" parent="Tools" instance=ExtResource("3_p4dx7")]
 max_health = 200
 
-[node name="Movement" parent="Tools" instance=ExtResource("4_ah7j6")]
+[node name="Movement" parent="Tools" node_paths=PackedStringArray("parent_character") instance=ExtResource("4_ah7j6")]
+parent_character = NodePath("../..")
 
 [node name="Animations" type="Node2D" parent="."]
 

@@ -1,12 +1,14 @@
-[gd_scene load_steps=23 format=3 uid="uid://bug2v2r7cvrjy"]
+[gd_scene load_steps=25 format=3 uid="uid://bug2v2r7cvrjy"]
 
 [ext_resource type="Script" uid="uid://bicvtqr30a8d6" path="res://Script/base_character.gd" id="1_foqlb"]
 [ext_resource type="Texture2D" uid="uid://buyud6oouchic" path="res://Assets/MageAnimation.png" id="2_5qvmk"]
 [ext_resource type="Shader" uid="uid://cdgo7va78jeil" path="res://Shaders/FlashWhite.gdshader" id="2_g1gcw"]
 [ext_resource type="Texture2D" uid="uid://bq651eg18h6d3" path="res://Assets/Shadow.png" id="2_n024f"]
 [ext_resource type="Script" uid="uid://b3pqwbslmkwbk" path="res://Script/HurtBox.gd" id="3_hfjlv"]
-[ext_resource type="PackedScene" uid="uid://d3gefvr6q5463" path="res://Scenes/Weapons/Sword.tscn" id="3_sv1ig"]
 [ext_resource type="PackedScene" uid="uid://bearj4oojp58g" path="res://Scenes/health.tscn" id="4_5qvmk"]
+[ext_resource type="PackedScene" uid="uid://d3gefvr6q5463" path="res://Scenes/Weapons/Sword.tscn" id="6_edl7v"]
+[ext_resource type="PackedScene" uid="uid://o6bd2qaxqu0m" path="res://GameUi.tscn" id="8_qv0tc"]
+[ext_resource type="AudioStream" uid="uid://cm58efsn2c16n" path="res://Shaders/dirt_steps.wav" id="9_edl7v"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_5qvmk"]
 radius = 3.0
@@ -299,7 +301,6 @@ recoil_friction = 250.0
 walk_speed = 70.0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-visible = false
 position = Vector2(0, 3)
 rotation = 1.5708
 shape = SubResource("CapsuleShape2D_5qvmk")
@@ -319,7 +320,6 @@ hframes = 4
 vframes = 7
 
 [node name="HurtBox#LINKLIFE" type="Area2D" parent="Body/BodyTexture"]
-visible = false
 position = Vector2(0, 5)
 script = ExtResource("3_hfjlv")
 metadata/_custom_type_script = "uid://b3pqwbslmkwbk"
@@ -333,7 +333,7 @@ texture_filter = 1
 position = Vector2(0, 8)
 texture = ExtResource("2_n024f")
 
-[node name="Weapon" parent="Body" instance=ExtResource("3_sv1ig")]
+[node name="Weapon" parent="Body" instance=ExtResource("6_edl7v")]
 
 [node name="Health" parent="." instance=ExtResource("4_5qvmk")]
 max_health = 500
@@ -352,3 +352,9 @@ speed_scale = 0.5
 libraries = {
 &"": SubResource("AnimationLibrary_ct4hk")
 }
+
+[node name="Control" parent="." instance=ExtResource("8_qv0tc")]
+
+[node name="Dirt_Step" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("9_edl7v")
+volume_db = 8.0

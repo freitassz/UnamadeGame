@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://cp8k7k6l80b2f"]
+[gd_scene load_steps=17 format=3 uid="uid://cp8k7k6l80b2f"]
 
 [ext_resource type="PackedScene" uid="uid://bearj4oojp58g" path="res://Scenes/health.tscn" id="1_aiwxb"]
 [ext_resource type="Script" uid="uid://cn0ynv0tpsdoo" path="res://Script/slime.gd" id="1_paq7w"]
@@ -10,6 +10,35 @@
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_paq7w"]
 radius = 3.5
 height = 12.0
+
+[sub_resource type="Animation" id="Animation_thw7m"]
+resource_name = "ATTACK"
+length = 0.6
+step = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../Body/EnemySprite:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3, 0.4, 0.5),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [12, 13, 14, 15, 16, 17]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("AnimationEnemy:speed_scale")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [2.0]
+}
 
 [sub_resource type="Animation" id="Animation_pqdc7"]
 resource_name = "IDLE"
@@ -87,6 +116,7 @@ tracks/0/keys = {
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_fwn0s"]
 _data = {
+&"ATTACK": SubResource("Animation_thw7m"),
 &"IDLE": SubResource("Animation_pqdc7"),
 &"RESET": SubResource("Animation_ipaxs"),
 &"RUN": SubResource("Animation_fwn0s")
@@ -114,6 +144,8 @@ platform_on_leave = 2
 platform_floor_layers = 4294901760
 script = ExtResource("1_paq7w")
 move_speed = 30.0
+attack_delay_min = 0.4
+attack_delay_max = 0.8
 dash_speed = 150.0
 dash_duration = 0.3
 
@@ -134,7 +166,7 @@ texture_filter = 1
 position = Vector2(0, -7)
 texture = ExtResource("2_paq7w")
 hframes = 6
-vframes = 2
+vframes = 3
 
 [node name="Shadow" type="Sprite2D" parent="Body/EnemySprite"]
 z_index = -1

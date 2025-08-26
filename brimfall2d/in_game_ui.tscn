@@ -1,0 +1,149 @@
+[gd_scene load_steps=6 format=3 uid="uid://bqq2mndfvk5kb"]
+
+[ext_resource type="Texture2D" uid="uid://c2qfapit6axpn" path="res://Assets/Menu.png" id="1_kenku"]
+[ext_resource type="FontFile" uid="uid://0vovrc2twf1i" path="res://Shaders/ari-w9500-condensed-display.ttf" id="2_onc8m"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_kenku"]
+texture = ExtResource("1_kenku")
+region_rect = Rect2(96, 16, 16, 16)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_onc8m"]
+texture = ExtResource("1_kenku")
+region_rect = Rect2(96, 16, 16, 16)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_e6quo"]
+texture = ExtResource("1_kenku")
+region_rect = Rect2(96, 0, 16, 16)
+
+[node name="InGameUI" type="Camera2D"]
+anchor_mode = 0
+zoom = Vector2(4, 4)
+
+[node name="Control" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 412.5
+offset_top = 600.0
+offset_right = 612.5
+offset_bottom = 600.0
+
+[node name="PopupMenu" type="MarginContainer" parent="Control"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -513.0
+offset_top = -599.0
+offset_right = -192.0
+offset_bottom = -420.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Control/PopupMenu"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 8
+
+[node name="BaseMenuScreen" type="MarginContainer" parent="Control/PopupMenu/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 8
+
+[node name="NinePatchRect" type="NinePatchRect" parent="Control/PopupMenu/VBoxContainer/BaseMenuScreen"]
+texture_filter = 1
+custom_minimum_size = Vector2(200, 79.265)
+layout_mode = 2
+texture = ExtResource("1_kenku")
+region_rect = Rect2(96, 96, 16, 16)
+patch_margin_left = 3
+patch_margin_top = 3
+patch_margin_right = 3
+patch_margin_bottom = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="Control/PopupMenu/VBoxContainer/BaseMenuScreen/NinePatchRect"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 15
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 15
+
+[node name="ButtonContainer" type="VBoxContainer" parent="Control/PopupMenu/VBoxContainer/BaseMenuScreen/NinePatchRect/MarginContainer"]
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 4
+theme_override_constants/separation = 10
+
+[node name="TopButton" type="HBoxContainer" parent="Control/PopupMenu/VBoxContainer/BaseMenuScreen/NinePatchRect/MarginContainer/ButtonContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="PauseButton2" type="Button" parent="Control/PopupMenu/VBoxContainer/BaseMenuScreen/NinePatchRect/MarginContainer/ButtonContainer/TopButton"]
+custom_minimum_size = Vector2(25, 25)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_styles/hover = SubResource("StyleBoxTexture_kenku")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_onc8m")
+theme_override_styles/normal = SubResource("StyleBoxTexture_e6quo")
+
+[node name="PauseButton" type="Button" parent="Control/PopupMenu/VBoxContainer/BaseMenuScreen/NinePatchRect/MarginContainer/ButtonContainer/TopButton"]
+custom_minimum_size = Vector2(25, 25)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_styles/hover = SubResource("StyleBoxTexture_kenku")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_onc8m")
+theme_override_styles/normal = SubResource("StyleBoxTexture_e6quo")
+
+[node name="DownButton" type="HBoxContainer" parent="Control/PopupMenu/VBoxContainer/BaseMenuScreen/NinePatchRect/MarginContainer/ButtonContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="PauseButton2" type="Button" parent="Control/PopupMenu/VBoxContainer/BaseMenuScreen/NinePatchRect/MarginContainer/ButtonContainer/DownButton"]
+custom_minimum_size = Vector2(25, 25)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_styles/hover = SubResource("StyleBoxTexture_kenku")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_onc8m")
+theme_override_styles/normal = SubResource("StyleBoxTexture_e6quo")
+
+[node name="PauseButton" type="Button" parent="Control/PopupMenu/VBoxContainer/BaseMenuScreen/NinePatchRect/MarginContainer/ButtonContainer/DownButton"]
+custom_minimum_size = Vector2(25, 25)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_styles/hover = SubResource("StyleBoxTexture_kenku")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_onc8m")
+theme_override_styles/normal = SubResource("StyleBoxTexture_e6quo")
+
+[node name="StatusLabel" type="VBoxContainer" parent="Control/PopupMenu/VBoxContainer/BaseMenuScreen/NinePatchRect/MarginContainer"]
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 4
+theme_override_constants/separation = 10
+
+[node name="HelthLabel" type="Label" parent="Control/PopupMenu/VBoxContainer/BaseMenuScreen/NinePatchRect/MarginContainer/StatusLabel"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.560784, 0.337255, 0.231373, 1)
+theme_override_colors/font_outline_color = Color(0.454902, 0.258824, 0.164706, 1)
+theme_override_constants/outline_size = 5
+theme_override_fonts/font = ExtResource("2_onc8m")
+theme_override_font_sizes/font_size = 9
+text = "Player Life:"
+
+[node name="AttackLabel" type="Label" parent="Control/PopupMenu/VBoxContainer/BaseMenuScreen/NinePatchRect/MarginContainer/StatusLabel"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.560784, 0.337255, 0.231373, 1)
+theme_override_colors/font_outline_color = Color(0.454902, 0.258824, 0.164706, 1)
+theme_override_constants/outline_size = 5
+theme_override_fonts/font = ExtResource("2_onc8m")
+theme_override_font_sizes/font_size = 9
+text = "Player Attack:"
